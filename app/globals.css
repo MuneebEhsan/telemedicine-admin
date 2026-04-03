@@ -1,26 +1,122 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary: #0F3C3A;
+  --color-primary-deep: #072A28;
+  --color-primary-light: #125754;
+  --color-secondary: #D4AF37;
+  --color-secondary-light: #F0CF61;
+  --color-accent: #14B8A6;
+  --color-accent-light: #2DD4BF;
+  --color-ink: #0B132B;
+  --color-muted: #475569;
+  --color-muted-light: #94A3B8;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F8FAFC;
+  --color-border: rgba(11, 19, 43, 0.08);
+  --color-border-hover: rgba(15, 60, 58, 0.2);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-2xl: 40px;
+  --radius-full: 999px;
+
+  /* Refined Business Class Shadows */
+  --shadow-sm: 0 2px 8px rgba(11, 19, 43, 0.04);
+  --shadow-md: 0 8px 24px rgba(11, 19, 43, 0.06);
+  --shadow-lg: 0 16px 40px rgba(11, 19, 43, 0.08);
+  --shadow-xl: 0 24px 60px rgba(11, 19, 43, 0.12);
+  --shadow-glow: 0 12px 30px rgba(15, 60, 58, 0.15);
+  --shadow-gold: 0 12px 30px rgba(212, 175, 55, 0.25);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* === Base === */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #F8FAFC; /* slightly different for admin to separate it from pure white */
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--color-primary-deep);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* === Premium Glass & Bento === */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  box-shadow: var(--shadow-md);
+}
+
+.bento-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-hover);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* === Buttons === */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: var(--color-primary-deep);
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 60, 58, 0.15);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 60, 58, 0.3);
+}
+
+/* === Focus Ring === */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
