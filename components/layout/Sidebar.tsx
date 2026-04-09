@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { name: "Categories", href: "/categories", icon: FolderTree },
   { name: "Subcategories", href: "/subcategories", icon: FolderTree },
   { name: "Orders", href: "/orders", icon: ClipboardList },
+  { name: "Assessment", href: "/assessment-questions", icon: ClipboardCheck },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

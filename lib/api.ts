@@ -82,6 +82,13 @@ export const addOrderNote = (id: string, note: string) => fetchWithAuth(`/admin/
 export const getAdminSettings = () => fetchWithAuth("/admin/settings");
 export const updateSetting = (key: string, value: any, description?: string) => fetchWithAuth(`/admin/settings/${key}`, { method: "PUT", body: JSON.stringify({ value, description }) });
 
+/** Assessment Questions APIs */
+export const getAssessmentQuestions = () => fetchWithAuth("/admin/assessment-questions");
+export const createAssessmentQuestion = (data: any) => fetchWithAuth("/admin/assessment-questions", { method: "POST", body: JSON.stringify(data) });
+export const updateAssessmentQuestion = (id: string, data: any) => fetchWithAuth(`/admin/assessment-questions/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteAssessmentQuestion = (id: string) => fetchWithAuth(`/admin/assessment-questions/${id}`, { method: "DELETE" });
+export const seedAssessmentQuestions = () => fetchWithAuth("/admin/assessment-questions/seed", { method: "POST" });
+
 export const uploadAdminImage = async (file: File, folder: string = "general") => {
   const formData = new FormData();
   formData.append("image", file);
@@ -113,5 +120,6 @@ export const adminApi = {
   getAdminSubCategories, createSubCategory, updateSubCategory, deleteSubCategory,
   getAdminOrders, getAdminOrder, updateOrderStatus, addOrderNote,
   getAdminSettings, updateSetting,
+  getAssessmentQuestions, createAssessmentQuestion, updateAssessmentQuestion, deleteAssessmentQuestion, seedAssessmentQuestions,
   uploadAdminImage
 };
