@@ -5,6 +5,7 @@ import { Search, Info, CheckCircle, PackageSearch, Truck, CheckCircle2, XCircle 
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -168,7 +169,9 @@ export default function Orders() {
                            {order.orderStatus === 'dispatched' && <button onClick={() => updateStatus(order._id, 'delivered')} className="text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 px-2.5 py-1.5 rounded-lg border border-green-200 transition-colors">Deliver</button>}
                            
                            {/* Detail Button */}
-                           <button className="text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors">Details</button>
+                           <Link href={`/orders/${order._id}`} className="text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors">
+                             Details
+                           </Link>
                         </div>
                       </td>
                     </tr>
