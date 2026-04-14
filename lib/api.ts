@@ -112,9 +112,18 @@ export const uploadAdminImage = async (file: File, folder: string = "general") =
   return response.json();
 };
 
+export const getPendingDoctors = () => fetchWithAuth("/admin/doctors/pending");
+export const approveDoctor = (id: string) => fetchWithAuth(`/admin/doctors/${id}/approve`, { 
+  method: "POST"
+});
+export const rejectDoctor = (id: string, reason: string) => fetchWithAuth(`/admin/doctors/${id}/reject`, {
+  method: "POST",
+  body: JSON.stringify({ reason })
+});
+
 export const adminApi = {
   getAdminDashboard,
-  getAdminUsers, getAdminUser, banUser, unbanUser,
+  getAdminUsers, getAdminUser, banUser, unbanUser, getPendingDoctors, approveDoctor, rejectDoctor,
   getAdminProducts, getAdminProduct, createProduct, updateProduct, deleteProduct, updateProductStock, bulkUpdateProductStatus,
   getAdminCategories, createCategory, updateCategory, deleteCategory,
   getAdminSubCategories, createSubCategory, updateSubCategory, deleteSubCategory,

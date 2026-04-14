@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut, ClipboardCheck, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Users", href: "/users", icon: Users },
+  { name: "Doctors", href: "/doctors", icon: Stethoscope },
   { name: "Products", href: "/products", icon: ShoppingBag },
   { name: "Categories", href: "/categories", icon: FolderTree },
   { name: "Subcategories", href: "/subcategories", icon: FolderTree },

@@ -17,7 +17,7 @@ export default function Users() {
       setLoading(true);
       const data = await adminApi.getAdminUsers(`page=${page}&search=${search}`);
       if (data.success) {
-        setUsers(data.data.users);
+        setUsers(data.data); // data.data is the array for paginated responses
       }
     } catch (error) {
       console.error("Failed to load users:", error);
