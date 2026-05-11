@@ -1,7 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 // Helper for fetching with Auth
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
+async function fetchWithAuth(url: string, options: RequestInit = {}, isFormData = false) {
   // Try to get token from localStorage first if we are on the client
   let token = null;
   if (typeof window !== "undefined") {
@@ -15,7 +15,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   }
 
   const headers = new Headers(options.headers || {});
-  headers.set("Content-Type", "application/json");
+  
+  // Only set application/json if not FormData
+  if (!isFormData) {
+    headers.set("Content-Type", "application/json");
+  }
+
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
@@ -48,8 +53,10 @@ export const getAdminDashboard = () => fetchWithAuth("/admin/dashboard");
 /** User APIs */
 export const getAdminUsers = (query = "") => fetchWithAuth(`/admin/users${query ? `?${query}` : ""}`);
 export const getAdminUser = (id: string) => fetchWithAuth(`/admin/users/${id}`);
+export const getUserDetails = (id: string) => fetchWithAuth(`/admin/users/${id}/details`);
 export const banUser = (id: string, reason: string) => fetchWithAuth(`/admin/users/${id}/ban`, { method: "POST", body: JSON.stringify({ reason }) });
 export const unbanUser = (id: string) => fetchWithAuth(`/admin/users/${id}/unban`, { method: "POST" });
+export const deleteUser = (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: "DELETE" });
 
 /** Product APIs */
 export const getAdminProducts = (query = "") => fetchWithAuth(`/admin/products${query ? `?${query}` : ""}`);
@@ -89,30 +96,28 @@ export const updateAssessmentQuestion = (id: string, data: any) => fetchWithAuth
 export const deleteAssessmentQuestion = (id: string) => fetchWithAuth(`/admin/assessment-questions/${id}`, { method: "DELETE" });
 export const seedAssessmentQuestions = () => fetchWithAuth("/admin/assessment-questions/seed", { method: "POST" });
 
-export const uploadAdminImage = async (file: File, folder: string = "general") => {
+export const uploadAdminImage = (file: File, folder = "general") => {
   const formData = new FormData();
   formData.append("image", file);
-  if (folder) formData.append("folder", folder);
-
-  let token = null;
-  if (typeof window !== "undefined") {
-    token = localStorage.getItem("adminToken");
-  }
-
-  const response = await fetch(`${API_BASE_URL}/admin/upload-image`, {
+  formData.append("folder", folder);
+  return fetchWithAuth("/admin/upload-image", {
     method: "POST",
-    headers: token ? { "Authorization": `Bearer ${token}` } : {},
     body: formData,
-  });
+  }, true);
+};
 
-  if (!response.ok) {
-     const data = await response.json();
-     throw new Error(data?.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
+export const uploadAdminVideo = (file: File, folder = "products") => {
+  const formData = new FormData();
+  formData.append("video", file);
+  formData.append("folder", folder);
+  return fetchWithAuth("/admin/upload-video", {
+    method: "POST",
+    body: formData,
+  }, true);
 };
 
 export const getPendingDoctors = () => fetchWithAuth("/admin/doctors/pending");
+export const getApprovedDoctors = () => fetchWithAuth("/admin/doctors/approved");
 export const approveDoctor = (id: string) => fetchWithAuth(`/admin/doctors/${id}/approve`, { 
   method: "POST"
 });
@@ -121,14 +126,27 @@ export const rejectDoctor = (id: string, reason: string) => fetchWithAuth(`/admi
   body: JSON.stringify({ reason })
 });
 
+/** Consultation APIs */
+export const getAllConsultations = (query = "") => fetchWithAuth(`/admin/consultations${query ? `?${query}` : ""}`);
+export const getConsultationById = (id: string) => fetchWithAuth(`/admin/consultations/${id}`);
+
+/** Self-Test APIs */
+export const getAllSelfTests = (query = "") => fetchWithAuth(`/admin/self-tests${query ? `?${query}` : ""}`);
+export const getSelfTestById = (id: string) => fetchWithAuth(`/admin/self-tests/${id}`);
+export const getUserSelfTests = (userId: string) => fetchWithAuth(`/admin/self-tests/user/${userId}`);
+
 export const adminApi = {
   getAdminDashboard,
-  getAdminUsers, getAdminUser, banUser, unbanUser, getPendingDoctors, approveDoctor, rejectDoctor,
+  getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
+  getPendingDoctors, getApprovedDoctors, approveDoctor, rejectDoctor,
   getAdminProducts, getAdminProduct, createProduct, updateProduct, deleteProduct, updateProductStock, bulkUpdateProductStatus,
   getAdminCategories, createCategory, updateCategory, deleteCategory,
   getAdminSubCategories, createSubCategory, updateSubCategory, deleteSubCategory,
   getAdminOrders, getAdminOrder, updateOrderStatus, addOrderNote,
   getAdminSettings, updateSetting,
   getAssessmentQuestions, createAssessmentQuestion, updateAssessmentQuestion, deleteAssessmentQuestion, seedAssessmentQuestions,
-  uploadAdminImage
+  uploadAdminImage,
+  uploadAdminVideo,
+  getAllConsultations, getConsultationById,
+  getAllSelfTests, getSelfTestById, getUserSelfTests,
 };

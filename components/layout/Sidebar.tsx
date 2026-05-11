@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut, ClipboardCheck, Stethoscope } from "lucide-react";
+import { LayoutDashboard, Users, ShoppingBag, FolderTree, ClipboardList, Settings, LogOut, ClipboardCheck, Stethoscope, Video, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Users", href: "/users", icon: Users },
   { name: "Doctors", href: "/doctors", icon: Stethoscope },
+  { name: "Doctor Applications", href: "/doctors/applications", icon: ClipboardCheck },
+  { name: "Consultations", href: "/consultations", icon: Video },
+  { name: "Self Tests", href: "/self-tests", icon: Activity },
   { name: "Products", href: "/products", icon: ShoppingBag },
   { name: "Categories", href: "/categories", icon: FolderTree },
   { name: "Subcategories", href: "/subcategories", icon: FolderTree },
@@ -44,7 +47,9 @@ export default function Sidebar() {
         </div>
         <nav className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            const isActive = 
+              pathname === item.href || 
+              (item.href !== "/" && pathname.startsWith(item.href + "/") && !(item.href === "/doctors" && pathname.startsWith("/doctors/applications")));
             return (
               <Link
                 key={item.name}

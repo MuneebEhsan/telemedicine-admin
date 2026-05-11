@@ -14,6 +14,7 @@ export default function EditProduct() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -37,7 +38,10 @@ export default function EditProduct() {
     packSize: "",
     hsnCode: "",
     gstPercent: 12,
-    status: "active"
+    status: "active",
+    howItWorks: [] as { icon: string, title: string, description: string }[],
+    howToUse: [] as { step: number, title: string, description: string }[],
+    videoUrl: ""
   });
 
   useEffect(() => {
@@ -81,7 +85,10 @@ export default function EditProduct() {
                 packSize: prod.packSize || "",
                 hsnCode: prod.hsnCode || "",
                 gstPercent: prod.gstPercent || 12,
-                status: prod.status || "active"
+                status: prod.status || "active",
+                howItWorks: prod.howItWorks || [],
+                howToUse: prod.howToUse || [],
+                videoUrl: prod.videoUrl || ""
              });
           }
         }
@@ -136,6 +143,30 @@ export default function EditProduct() {
     }
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    // 20MB limit for video
+    if (file.size > 20 * 1024 * 1024) {
+      alert("Video exceeds the 20MB limit. Please upload a smaller file.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingVideo(true);
+    try {
+      const response = await adminApi.uploadAdminVideo(file, "products");
+      if (response.success && response.data?.url) {
+        setFormData(prev => ({ ...prev, videoUrl: response.data.url }));
+      }
+    } catch (error) {
+      alert("Failed to upload video");
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   const removeImage = (indexToRemove: number) => {
     const newImages = formData.images.filter((_, i) => i !== indexToRemove);
     const newThumbnail = formData.thumbnail === formData.images[indexToRemove] 
@@ -162,7 +193,9 @@ export default function EditProduct() {
         ...formData,
         healthConditions: formData.healthConditions.split(',').map(s => s.trim()).filter(Boolean),
         tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean),
-        badge: formData.badge === 'none' ? '' : formData.badge
+        badge: formData.badge === 'none' ? '' : formData.badge,
+        howItWorks: formData.howItWorks,
+        howToUse: formData.howToUse
       };
       
       // Some backends prefer subCategory to not be sent if it's empty
@@ -228,33 +261,78 @@ export default function EditProduct() {
                {/* Media Uploads */}
                <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
                   <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
-                     Product Images
+                     Product Media
                      {uploadingImage && <span className="text-xs text-[#14B8A6] animate-pulse">Uploading...</span>}
                   </h3>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     {formData.images.map((url, index) => (
-                        <div key={index} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
-                           <img src={url} alt="Product img" className="w-full h-full object-cover" />
-                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                              {formData.thumbnail !== url && (
-                                 <button type="button" onClick={() => setAsThumbnail(url)} className="text-[10px] font-medium bg-white text-slate-800 px-2 py-1 rounded shadow-sm hover:bg-slate-100">Set Thumbnail</button>
-                              )}
-                              <button type="button" onClick={() => removeImage(index)} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors">
-                                 <X className="w-4 h-4" />
-                              </button>
-                           </div>
-                           {formData.thumbnail === url && (
-                              <div className="absolute top-2 left-2 bg-[#14B8A6] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">Thumbnail</div>
-                           )}
-                        </div>
-                     ))}
-                     
-                     <label className="border-2 border-dashed border-slate-200 rounded-xl aspect-square flex flex-col items-center justify-center text-slate-400 hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 transition-all cursor-pointer">
-                        <Upload className="w-6 h-6 mb-2" />
-                        <span className="text-xs font-medium">Add Image</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} />
-                     </label>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       {formData.images.map((url, index) => (
+                          <div key={index} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-50">
+                             <img src={url} alt="Product img" className="w-full h-full object-cover" />
+                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                {formData.thumbnail !== url && (
+                                   <button type="button" onClick={() => setAsThumbnail(url)} className="text-[10px] font-medium bg-white text-slate-800 px-2 py-1 rounded shadow-sm hover:bg-slate-100">Set Thumbnail</button>
+                                )}
+                                <button type="button" onClick={() => removeImage(index)} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors">
+                                   <X className="w-4 h-4" />
+                                </button>
+                             </div>
+                             {formData.thumbnail === url && (
+                                <div className="absolute top-2 left-2 bg-[#14B8A6] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">Thumbnail</div>
+                             )}
+                          </div>
+                       ))}
+                       
+                       <label className="border-2 border-dashed border-slate-200 rounded-xl aspect-square flex flex-col items-center justify-center text-slate-400 hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 transition-all cursor-pointer">
+                          <Upload className="w-6 h-6 mb-2" />
+                          <span className="text-xs font-medium">Add Image</span>
+                          <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} />
+                       </label>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100">
+                       <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                          Product Video
+                          {uploadingVideo && <span className="text-xs text-[#14B8A6] animate-pulse">Uploading Video...</span>}
+                       </label>
+                       
+                       <div className="flex flex-col gap-3">
+                          {formData.videoUrl ? (
+                             <div className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-black flex items-center justify-center">
+                                <video src={formData.videoUrl} className="w-full h-full object-contain" controls />
+                                <button 
+                                   type="button" 
+                                   onClick={() => setFormData(prev => ({ ...prev, videoUrl: "" }))} 
+                                   className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                   <X className="w-4 h-4" />
+                                </button>
+                             </div>
+                          ) : (
+                             <label className="border-2 border-dashed border-slate-200 rounded-xl py-8 flex flex-col items-center justify-center text-slate-400 hover:border-[#14B8A6] hover:bg-[#14B8A6]/5 transition-all cursor-pointer">
+                                <Upload className="w-8 h-8 mb-2" />
+                                <span className="text-sm font-medium">Upload Product Video</span>
+                                <span className="text-[10px] text-slate-400 mt-1">MP4, WebM (Max 20MB)</span>
+                                <input type="file" className="hidden" accept="video/*" onChange={handleVideoUpload} disabled={uploadingVideo} />
+                             </label>
+                          )}
+                          
+                          <div className="relative">
+                             <input 
+                                type="text" 
+                                name="videoUrl" 
+                                value={formData.videoUrl} 
+                                onChange={handleChange} 
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all pr-20" 
+                                placeholder="Or paste Cloudinary/Direct Link here..." 
+                             />
+                             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <span className="text-[10px] font-bold text-slate-300 uppercase">Direct Link</span>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
                   </div>
                </div>
 
@@ -287,6 +365,91 @@ export default function EditProduct() {
                         <label className="block text-sm font-medium text-slate-700 mb-1">Search Tags (comma separated)</label>
                         <input type="text" name="tags" value={formData.tags} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" placeholder="paracetamol, pain relief, generic" />
                      </div>
+                  </div>
+               </div>
+               
+               {/* 4. How It Works Section */}
+               <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                  <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
+                     How It Works
+                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: [...prev.howItWorks, { icon: 'fas fa-check-circle', title: '', description: '' }] }))} className="text-xs font-bold text-[#14B8A6] hover:underline">+ Add Point</button>
+                  </h3>
+                  
+                  <div className="space-y-4">
+                     {formData.howItWorks.map((item, index) => (
+                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3 relative">
+                           <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: prev.howItWorks.filter((_, i) => i !== index) }))} className="absolute top-2 right-2 text-slate-400 hover:text-red-500">
+                              <X className="w-4 h-4" />
+                           </button>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Icon (FontAwesome)</label>
+                                 <input type="text" value={item.icon} onChange={(e) => {
+                                    const newHW = [...formData.howItWorks];
+                                    newHW[index].icon = e.target.value;
+                                    setFormData(prev => ({ ...prev, howItWorks: newHW }));
+                                 }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none" placeholder="fas fa-check-circle" />
+                              </div>
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Title</label>
+                                 <input type="text" value={item.title} onChange={(e) => {
+                                    const newHW = [...formData.howItWorks];
+                                    newHW[index].title = e.target.value;
+                                    setFormData(prev => ({ ...prev, howItWorks: newHW }));
+                                 }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none" placeholder="e.g. Fast Acting" />
+                              </div>
+                           </div>
+                           <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
+                              <textarea rows={2} value={item.description} onChange={(e) => {
+                                 const newHW = [...formData.howItWorks];
+                                 newHW[index].description = e.target.value;
+                                 setFormData(prev => ({ ...prev, howItWorks: newHW }));
+                              }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none resize-none" placeholder="Describe how it works..."></textarea>
+                           </div>
+                        </div>
+                     ))}
+                     {formData.howItWorks.length === 0 && <p className="text-xs text-slate-400 italic">No points added yet.</p>}
+                  </div>
+               </div>
+
+               {/* 5. How To Use Section */}
+               <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                  <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
+                     How To Use Steps
+                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, howToUse: [...prev.howToUse, { step: prev.howToUse.length + 1, title: '', description: '' }] }))} className="text-xs font-bold text-[#14B8A6] hover:underline">+ Add Step</button>
+                  </h3>
+                  
+                  <div className="space-y-4">
+                     {formData.howToUse.map((item, index) => (
+                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3 relative">
+                           <button type="button" onClick={() => setFormData(prev => ({ ...prev, howToUse: prev.howToUse.filter((_, i) => i !== index) }))} className="absolute top-2 right-2 text-slate-400 hover:text-red-500">
+                              <X className="w-4 h-4" />
+                           </button>
+                           <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-[#14B8A6] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                                 {index + 1}
+                              </div>
+                              <div className="flex-1">
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Step Title</label>
+                                 <input type="text" value={item.title} onChange={(e) => {
+                                    const newHU = [...formData.howToUse];
+                                    newHU[index].title = e.target.value;
+                                    setFormData(prev => ({ ...prev, howToUse: newHU }));
+                                 }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none" placeholder="e.g. Shake well" />
+                              </div>
+                           </div>
+                           <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Step Description</label>
+                              <textarea rows={2} value={item.description} onChange={(e) => {
+                                 const newHU = [...formData.howToUse];
+                                 newHU[index].description = e.target.value;
+                                 setFormData(prev => ({ ...prev, howToUse: newHU }));
+                              }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none resize-none" placeholder="Instructions for this step..."></textarea>
+                           </div>
+                        </div>
+                     ))}
+                     {formData.howToUse.length === 0 && <p className="text-xs text-slate-400 italic">No steps added yet.</p>}
                   </div>
                </div>
          </div>
