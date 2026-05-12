@@ -17,6 +17,7 @@ import {
   FileCheck,
   Pill,
   Package,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ const allNavItems: NavItem[] = [
   { name: "Categories", href: "/categories", icon: FolderTree, roles: ["admin"] },
   { name: "Subcategories", href: "/subcategories", icon: FolderTree, roles: ["admin"] },
   { name: "Orders", href: "/orders", icon: ClipboardList, roles: ["admin"] },
+  { name: "Coupons", href: "/coupons", icon: Ticket, roles: ["admin"] },
   { name: "Assessment", href: "/assessment-questions", icon: ClipboardCheck, roles: ["admin"] },
 
   // --- Pharmacy section (visible to both admin and pharmacy) ---

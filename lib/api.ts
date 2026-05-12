@@ -147,6 +147,13 @@ export const createPharmacyUser = (data: { phone: string; password: string; name
 export const updateUserRole = (userId: string, role: string) =>
   fetchWithAuth(`/admin/users/${userId}/role`, { method: "PUT", body: JSON.stringify({ role }) });
 
+/** Coupon APIs */
+export const getCoupons = (query = "") => fetchWithAuth(`/admin/coupons${query ? `?${query}` : ""}`);
+export const getCouponById = (id: string) => fetchWithAuth(`/admin/coupons/${id}`);
+export const createCoupon = (data: any) => fetchWithAuth("/admin/coupons", { method: "POST", body: JSON.stringify(data) });
+export const updateCoupon = (id: string, data: any) => fetchWithAuth(`/admin/coupons/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteCoupon = (id: string) => fetchWithAuth(`/admin/coupons/${id}`, { method: "DELETE" });
+
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
@@ -163,5 +170,6 @@ export const adminApi = {
   getAllConsultations, getConsultationById,
   getAllSelfTests, getSelfTestById, getUserSelfTests,
   getPrescriptionOrders, getPrescriptionOrder, reviewPrescription,
+  getCoupons, getCouponById, createCoupon, updateCoupon, deleteCoupon,
 };
 
