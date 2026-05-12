@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, Ban, CheckCircle, Trash2, Eye } from "lucide-react";
+import { Shield, Ban, CheckCircle, Trash2, Eye, Pill, Plus } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -27,6 +27,16 @@ export default function Users() {
     userId: "",
     userName: ""
   });
+
+  // Create Pharmacy Modal
+  const [pharmacyModal, setPharmacyModal] = useState(false);
+  const [pharmacyForm, setPharmacyForm] = useState({
+    name: "",
+    phone: "",
+    password: "",
+    email: "",
+  });
+  const [pharmacyLoading, setPharmacyLoading] = useState(false);
 
   const loadUsers = async () => {
     try {
@@ -93,6 +103,68 @@ export default function Users() {
     }
   };
 
+  const handleCreatePharmacy = async () => {
+    if (!pharmacyForm.name.trim() || !pharmacyForm.phone.trim() || !pharmacyForm.password.trim()) {
+      alert("Name, phone, and password are required.");
+      return;
+    }
+    try {
+      setPharmacyLoading(true);
+      await adminApi.createPharmacyUser({
+        name: pharmacyForm.name,
+        phone: pharmacyForm.phone,
+        password: pharmacyForm.password,
+        email: pharmacyForm.email || undefined,
+      });
+      setPharmacyModal(false);
+      setPharmacyForm({ name: "", phone: "", password: "", email: "" });
+      loadUsers();
+    } catch (e: any) {
+      alert(e.message || "Failed to create pharmacy user.");
+    } finally {
+      setPharmacyLoading(false);
+    }
+  };
+
+  const handleMakePharmacy = async (userId: string, userName: string) => {
+    if (!confirm(`Make "${userName}" a Pharmacy user? They will be able to log into the pharmacy panel.`)) return;
+    try {
+      await adminApi.updateUserRole(userId, "pharmacy");
+      loadUsers();
+    } catch (e: any) {
+      alert(e.message || "Failed to update role.");
+    }
+  };
+
+  const handleRevokePharmacy = async (userId: string, userName: string) => {
+    if (!confirm(`Revoke pharmacy access for "${userName}"? They will become a regular patient.`)) return;
+    try {
+      await adminApi.updateUserRole(userId, "patient");
+      loadUsers();
+    } catch (e: any) {
+      alert(e.message || "Failed to update role.");
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    const styles: Record<string, string> = {
+      admin: "bg-purple-100 text-purple-800",
+      doctor: "bg-blue-100 text-blue-800",
+      pharmacy: "bg-violet-100 text-violet-800",
+      patient: "bg-slate-100 text-slate-800",
+    };
+    const icons: Record<string, React.ReactNode> = {
+      admin: <Shield className="w-3 h-3" />,
+      pharmacy: <Pill className="w-3 h-3" />,
+    };
+    return (
+      <span className={`inline-flex flex-row items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize ${styles[role] || styles.patient}`}>
+        {icons[role]}
+        {role}
+      </span>
+    );
+  };
+
   const limit = 20;
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -123,10 +195,20 @@ export default function Users() {
                 <option value="">All Roles</option>
                 <option value="patient">Patients</option>
                 <option value="doctor">Doctors</option>
+                <option value="pharmacy">Pharmacy</option>
                 <option value="admin">Admins</option>
               </select>
             </div>
-            <span className="text-sm text-slate-500">{total} total users</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-500">{total} total users</span>
+              <button
+                onClick={() => setPharmacyModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#8B5CF6] text-white rounded-lg text-sm font-medium hover:bg-[#7C3AED] transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Create Pharmacy Login
+              </button>
+            </div>
           </div>
           
           {/* Table */}
@@ -161,8 +243,12 @@ export default function Users() {
                     <tr key={user._id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#14B8A6]/20 to-[#0F3C3A]/10 flex items-center justify-center font-semibold text-[#0B132B] text-sm">
-                            {user.name?.charAt(0)?.toUpperCase() || "?"}
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${
+                            user.role === "pharmacy"
+                              ? "bg-gradient-to-br from-[#8B5CF6]/20 to-[#6D28D9]/10 text-[#6D28D9]"
+                              : "bg-gradient-to-br from-[#14B8A6]/20 to-[#0F3C3A]/10 text-[#0B132B]"
+                          }`}>
+                            {user.role === "pharmacy" ? <Pill className="w-4 h-4" /> : user.name?.charAt(0)?.toUpperCase() || "?"}
                           </div>
                           <div>
                             <p className="font-medium text-[#0B132B]">{user.name}</p>
@@ -175,13 +261,7 @@ export default function Users() {
                         <p className="text-xs text-slate-500">{user.email || "N/A"}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex flex-row items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize
-                          ${user.role === "admin" ? "bg-purple-100 text-purple-800" :
-                            user.role === "doctor" ? "bg-blue-100 text-blue-800" :
-                            "bg-slate-100 text-slate-800"}`}>
-                          {user.role === "admin" && <Shield className="w-3 h-3" />}
-                          {user.role}
-                        </span>
+                        {getRoleBadge(user.role)}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize
@@ -202,6 +282,25 @@ export default function Users() {
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
+                          {/* Make Pharmacy / Revoke Pharmacy */}
+                          {user.role === "patient" && (
+                            <button
+                              onClick={() => handleMakePharmacy(user._id, user.name)}
+                              className="p-1.5 rounded-lg text-violet-500 hover:bg-violet-50 transition-colors"
+                              title="Make Pharmacy User"
+                            >
+                              <Pill className="w-4 h-4" />
+                            </button>
+                          )}
+                          {user.role === "pharmacy" && (
+                            <button
+                              onClick={() => handleRevokePharmacy(user._id, user.name)}
+                              className="text-xs font-medium text-violet-600 bg-violet-50 hover:bg-violet-100 px-2 py-1 rounded-lg border border-violet-200 transition-colors"
+                              title="Revoke Pharmacy Access"
+                            >
+                              Revoke
+                            </button>
+                          )}
                           {/* Ban / Unban */}
                           {user.role !== "admin" && (
                             <button
@@ -253,6 +352,89 @@ export default function Users() {
           </div>
         </div>
       </div>
+
+      {/* Create Pharmacy User Modal */}
+      {pharmacyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 animate-scale-up border border-slate-100">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-[#8B5CF6]/10 text-[#8B5CF6] rounded-xl flex items-center justify-center">
+                <Pill className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-display font-bold text-[#0B132B]">Create Pharmacy Login</h2>
+                <p className="text-xs text-slate-500">This account can manage prescriptions & orders</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Duraup Pharmacy"
+                  value={pharmacyForm.name}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, name: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Phone Number *</label>
+                <input
+                  type="tel"
+                  placeholder="+919876543210"
+                  value={pharmacyForm.phone}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, phone: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Password *</label>
+                <input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={pharmacyForm.password}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, password: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email (optional)</label>
+                <input
+                  type="email"
+                  placeholder="pharmacy@duraup.com"
+                  value={pharmacyForm.email}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, email: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-xs text-violet-700">
+                💊 This user will be able to login at the admin panel and manage prescriptions & orders only. They won't have access to products, users, or settings.
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setPharmacyModal(false);
+                    setPharmacyForm({ name: "", phone: "", password: "", email: "" });
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePharmacy}
+                  disabled={pharmacyLoading}
+                  className="flex-1 px-4 py-3 rounded-xl bg-[#8B5CF6] text-white font-bold text-xs uppercase tracking-widest hover:bg-[#7C3AED] shadow-lg shadow-[#8B5CF6]/20 transition-all disabled:opacity-60"
+                >
+                  {pharmacyLoading ? "Creating..." : "Create Account"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ban Reason Modal */}
       {banModal.isOpen && (

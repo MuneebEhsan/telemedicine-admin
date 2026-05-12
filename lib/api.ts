@@ -135,9 +135,22 @@ export const getAllSelfTests = (query = "") => fetchWithAuth(`/admin/self-tests$
 export const getSelfTestById = (id: string) => fetchWithAuth(`/admin/self-tests/${id}`);
 export const getUserSelfTests = (userId: string) => fetchWithAuth(`/admin/self-tests/user/${userId}`);
 
+/** Prescription Review APIs */
+export const getPrescriptionOrders = (query = "") => fetchWithAuth(`/admin/prescriptions${query ? `?${query}` : ""}`);
+export const getPrescriptionOrder = (id: string) => fetchWithAuth(`/admin/prescriptions/${id}`);
+export const reviewPrescription = (id: string, action: 'approve' | 'reject', note?: string) =>
+  fetchWithAuth(`/admin/prescriptions/${id}/review`, { method: "PUT", body: JSON.stringify({ action, note }) });
+
+/** Pharmacy User Management APIs */
+export const createPharmacyUser = (data: { phone: string; password: string; name: string; email?: string }) =>
+  fetchWithAuth("/admin/users/create-pharmacy", { method: "POST", body: JSON.stringify(data) });
+export const updateUserRole = (userId: string, role: string) =>
+  fetchWithAuth(`/admin/users/${userId}/role`, { method: "PUT", body: JSON.stringify({ role }) });
+
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
+  createPharmacyUser, updateUserRole,
   getPendingDoctors, getApprovedDoctors, approveDoctor, rejectDoctor,
   getAdminProducts, getAdminProduct, createProduct, updateProduct, deleteProduct, updateProductStock, bulkUpdateProductStatus,
   getAdminCategories, createCategory, updateCategory, deleteCategory,
@@ -149,4 +162,6 @@ export const adminApi = {
   uploadAdminVideo,
   getAllConsultations, getConsultationById,
   getAllSelfTests, getSelfTestById, getUserSelfTests,
+  getPrescriptionOrders, getPrescriptionOrder, reviewPrescription,
 };
+

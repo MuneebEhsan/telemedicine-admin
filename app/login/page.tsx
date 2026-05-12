@@ -32,16 +32,19 @@ export default function Login() {
         throw new Error(data.message || "Invalid credentials");
       }
 
-      if (data.data.user.role !== "admin") {
-        throw new Error("Access Denied: Admin role required");
+      const userRole = data.data.user.role;
+      if (!["admin", "pharmacy"].includes(userRole)) {
+        throw new Error("Access Denied: Admin or Pharmacy role required");
       }
 
       localStorage.setItem("adminToken", data.data.accessToken);
+      localStorage.setItem("userRole", userRole);
       if (data.data.refreshToken) {
          localStorage.setItem("adminRefreshToken", data.data.refreshToken);
       }
       
-      router.push("/");
+      // Pharmacy users go straight to prescriptions, admin goes to dashboard
+      router.push(userRole === "pharmacy" ? "/prescriptions" : "/");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
