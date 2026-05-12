@@ -6,6 +6,9 @@ import { ArrowLeft, Save, Upload, X } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import Link from "next/link";
+import dynamic from 'next/dynamic';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 export default function CreateProduct() {
   const router = useRouter();
@@ -14,6 +17,7 @@ export default function CreateProduct() {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [activeEmojiPicker, setActiveEmojiPicker] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -374,7 +378,7 @@ export default function CreateProduct() {
                <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
                   <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
                      How It Works
-                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: [...prev.howItWorks, { icon: 'fas fa-check-circle', title: '', description: '' }] }))} className="text-xs font-bold text-[#14B8A6] hover:underline">+ Add Point</button>
+                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: [...prev.howItWorks, { icon: '✅', title: '', description: '' }] }))} className="text-xs font-bold text-[#14B8A6] hover:underline">+ Add Point</button>
                   </h3>
                   
                   <div className="space-y-4">
@@ -384,13 +388,27 @@ export default function CreateProduct() {
                               <X className="w-4 h-4" />
                            </button>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Icon (FontAwesome)</label>
-                                 <input type="text" value={item.icon} onChange={(e) => {
-                                    const newHW = [...formData.howItWorks];
-                                    newHW[index].icon = e.target.value;
-                                    setFormData(prev => ({ ...prev, howItWorks: newHW }));
-                                 }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none" placeholder="fas fa-check-circle" />
+                              <div className="relative">
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Icon (Emoji)</label>
+                                 <button
+                                    type="button"
+                                    onClick={() => setActiveEmojiPicker(activeEmojiPicker === index ? null : index)}
+                                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none flex justify-between items-center text-left h-[34px]"
+                                 >
+                                    <span className="text-lg leading-none">{item.icon || '✅'}</span>
+                                 </button>
+                                 {activeEmojiPicker === index && (
+                                    <div className="absolute top-full left-0 z-50 mt-1 shadow-xl">
+                                       <EmojiPicker 
+                                          onEmojiClick={(emojiData) => {
+                                             const newHW = [...formData.howItWorks];
+                                             newHW[index].icon = emojiData.emoji;
+                                             setFormData(prev => ({ ...prev, howItWorks: newHW }));
+                                             setActiveEmojiPicker(null);
+                                          }} 
+                                       />
+                                    </div>
+                                 )}
                               </div>
                               <div>
                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Title</label>
