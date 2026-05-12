@@ -419,7 +419,7 @@ export default function EditProduct() {
                   
                   <div className="space-y-4">
                      {formData.howItWorks.map((item, index) => (
-                        <div key={index} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3 relative">
+                        <div key={index} className={`p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3 relative ${activeEmojiPicker === index ? 'z-50' : 'z-10'}`}>
                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: prev.howItWorks.filter((_, i) => i !== index) }))} className="absolute top-2 right-2 text-slate-400 hover:text-red-500">
                               <X className="w-4 h-4" />
                            </button>
