@@ -39,8 +39,8 @@ export default function EditProduct() {
     hsnCode: "",
     gstPercent: 12,
     status: "active",
-    howItWorks: [] as { icon: string, title: string, description: string }[],
-    howToUse: [] as { step: number, title: string, description: string }[],
+    howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
+    howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
     videoUrl: ""
   });
 
@@ -178,6 +178,44 @@ export default function EditProduct() {
 
   const setAsThumbnail = (url: string) => {
     setFormData(prev => ({ ...prev, thumbnail: url }));
+  };
+
+  const handleArrayImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'howItWorks' | 'howToUse', index: number) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) return alert("Image exceeds 5MB limit.");
+
+    try {
+      const response = await adminApi.uploadAdminImage(file, "products");
+      if (response.success && response.data?.url) {
+        setFormData(prev => {
+          const newArray = [...prev[type]] as any[];
+          newArray[index].image = response.data.url;
+          return { ...prev, [type]: newArray };
+        });
+      }
+    } catch (error) {
+      alert("Failed to upload image");
+    }
+  };
+
+  const handleArrayVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'howItWorks' | 'howToUse', index: number) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (file.size > 20 * 1024 * 1024) return alert("Video exceeds 20MB limit.");
+
+    try {
+      const response = await adminApi.uploadAdminVideo(file, "products");
+      if (response.success && response.data?.url) {
+        setFormData(prev => {
+          const newArray = [...prev[type]] as any[];
+          newArray[index].video = response.data.url;
+          return { ...prev, [type]: newArray };
+        });
+      }
+    } catch (error) {
+      alert("Failed to upload video");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -407,6 +445,22 @@ export default function EditProduct() {
                                  setFormData(prev => ({ ...prev, howItWorks: newHW }));
                               }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none resize-none" placeholder="Describe how it works..."></textarea>
                            </div>
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Optional Image</label>
+                                 <div className="flex items-center gap-2">
+                                    {item.image && <img src={item.image} alt="How it works" className="w-8 h-8 rounded object-cover" />}
+                                    <input type="file" accept="image/*" onChange={(e) => handleArrayImageUpload(e, 'howItWorks', index)} className="text-xs w-full" />
+                                 </div>
+                              </div>
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Optional Video</label>
+                                 <div className="flex items-center gap-2">
+                                    {item.video && <video src={item.video} className="w-8 h-8 rounded object-cover" />}
+                                    <input type="file" accept="video/*" onChange={(e) => handleArrayVideoUpload(e, 'howItWorks', index)} className="text-xs w-full" />
+                                 </div>
+                              </div>
+                           </div>
                         </div>
                      ))}
                      {formData.howItWorks.length === 0 && <p className="text-xs text-slate-400 italic">No points added yet.</p>}
@@ -446,6 +500,22 @@ export default function EditProduct() {
                                  newHU[index].description = e.target.value;
                                  setFormData(prev => ({ ...prev, howToUse: newHU }));
                               }} className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none resize-none" placeholder="Instructions for this step..."></textarea>
+                           </div>
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Optional Image</label>
+                                 <div className="flex items-center gap-2">
+                                    {item.image && <img src={item.image} alt="How to use" className="w-8 h-8 rounded object-cover" />}
+                                    <input type="file" accept="image/*" onChange={(e) => handleArrayImageUpload(e, 'howToUse', index)} className="text-xs w-full" />
+                                 </div>
+                              </div>
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Optional Video</label>
+                                 <div className="flex items-center gap-2">
+                                    {item.video && <video src={item.video} className="w-8 h-8 rounded object-cover" />}
+                                    <input type="file" accept="video/*" onChange={(e) => handleArrayVideoUpload(e, 'howToUse', index)} className="text-xs w-full" />
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      ))}
