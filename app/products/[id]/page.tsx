@@ -411,7 +411,7 @@ export default function EditProduct() {
                </div>
                
                {/* 4. How It Works Section */}
-               <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+               <div className={`glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5 relative ${activeEmojiPicker !== null ? 'z-50' : 'z-10'}`}>
                   <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
                      How It Works
                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, howItWorks: [...prev.howItWorks, { icon: '✅', title: '', description: '' }] }))} className="text-xs font-bold text-[#14B8A6] hover:underline">+ Add Point</button>
