@@ -116,8 +116,8 @@ export const uploadAdminVideo = (file: File, folder = "products") => {
   }, true);
 };
 
-export const getPendingDoctors = () => fetchWithAuth("/admin/doctors/pending");
-export const getApprovedDoctors = () => fetchWithAuth("/admin/doctors/approved");
+export const getPendingDoctors = (query = "") => fetchWithAuth(`/admin/doctors/pending${query ? `?${query}` : ""}`);
+export const getApprovedDoctors = (query = "") => fetchWithAuth(`/admin/doctors/approved${query ? `?${query}` : ""}`);
 export const approveDoctor = (id: string) => fetchWithAuth(`/admin/doctors/${id}/approve`, { 
   method: "POST"
 });

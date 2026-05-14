@@ -12,15 +12,20 @@ export default function PendingDoctorsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
     fetchPendingDoctors();
-  }, []);
+  }, [dateFrom, dateTo]);
 
   const fetchPendingDoctors = async () => {
     try {
       setLoading(true);
-      const res = await adminApi.getPendingDoctors();
+      let query = "";
+      if (dateFrom) query += `dateFrom=${dateFrom}&`;
+      if (dateTo) query += `dateTo=${dateTo}`;
+      const res = await adminApi.getPendingDoctors(query);
       setDoctors(res.data.doctors || []);
     } catch (error: any) {
       alert(error.message || "Failed to fetch pending doctors.");
@@ -96,6 +101,21 @@ export default function PendingDoctorsPage() {
             <RefreshCw className="w-4 h-4" />
             Sync Roster
           </button>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <span className="text-slate-400 text-sm">to</span>
+            <input
+              type="date"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="glass-panel rounded-2xl border border-slate-100 overflow-hidden shadow-sm">

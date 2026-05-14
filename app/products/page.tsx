@@ -12,12 +12,17 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: "", name: ""});
 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await adminApi.getAdminProducts(`page=${page}&search=${search}`);
+      let query = `page=${page}&search=${search}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
+      const data = await adminApi.getAdminProducts(query);
       if (data.success) {
         setProducts(data.data.products || data.data); // depending on backend structure
       }
@@ -30,7 +35,7 @@ export default function Products() {
 
   useEffect(() => {
     loadProducts();
-  }, [page, search]);
+  }, [page, search, dateFrom, dateTo]);
 
   const promptDelete = (id: string, name: string) => {
     setDeleteModal({ isOpen: true, id, name });
@@ -70,7 +75,21 @@ export default function Products() {
                }}
             />
             <div className="flex gap-2">
-               <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 hover:bg-slate-50">Filter</button>
+               <div className="flex items-center gap-2">
+                 <input
+                   type="date"
+                   className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                   value={dateFrom}
+                   onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                 />
+                 <span className="text-slate-400 text-sm">to</span>
+                 <input
+                   type="date"
+                   className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                   value={dateTo}
+                   onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                 />
+               </div>
                <Link href="/products/create" className="btn-primary flex items-center gap-2">
                  <Plus className="w-4 h-4" /> Add Product
                </Link>

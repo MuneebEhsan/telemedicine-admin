@@ -14,6 +14,8 @@ export default function PrescriptionReviews() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [reviewModal, setReviewModal] = useState<{ id: string; action: "approve" | "reject" } | null>(null);
   const [reviewNote, setReviewNote] = useState("");
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -22,7 +24,9 @@ export default function PrescriptionReviews() {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const query = `page=${page}&limit=20&search=${search}${statusFilter ? `&status=${statusFilter}` : ""}`;
+      let query = `page=${page}&limit=20&search=${search}${statusFilter ? `&status=${statusFilter}` : ""}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getPrescriptionOrders(query);
       if (data.success) {
         setOrders(data.data || []);
@@ -37,7 +41,7 @@ export default function PrescriptionReviews() {
 
   useEffect(() => {
     loadOrders();
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, dateFrom, dateTo]);
 
   const handleReview = async () => {
     if (!reviewModal) return;
@@ -148,19 +152,36 @@ export default function PrescriptionReviews() {
               />
             </div>
 
-            <select
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">All Statuses</option>
-              <option value="pending_review">Pending Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <div className="flex gap-2">
+              <select
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#8B5CF6]/20"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="">All Statuses</option>
+                <option value="pending_review">Pending Review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#8B5CF6]/20"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                />
+                <span className="text-slate-400 text-sm">to</span>
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#8B5CF6]/20"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

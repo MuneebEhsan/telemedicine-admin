@@ -40,16 +40,21 @@ export default function CouponsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const load = async () => {
     try {
       setLoading(true);
-      const data = await adminApi.getCoupons();
+      let query = "";
+      if (dateFrom) query += `dateFrom=${dateFrom}&`;
+      if (dateTo) query += `dateTo=${dateTo}`;
+      const data = await adminApi.getCoupons(query);
       setCoupons(data.data?.coupons || data.data || []);
     } catch (e: any) { console.error(e); } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [dateFrom, dateTo]);
 
   const openCreate = () => { setForm(emptyForm); setEditingId(null); setShowModal(true); };
   const openEdit = (c: Coupon) => {
@@ -115,6 +120,21 @@ export default function CouponsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search coupons..."
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20" />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <span className="text-slate-400 text-sm">to</span>
+            <input
+              type="date"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
           </div>
           <button onClick={openCreate} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium">
             <Plus className="w-4 h-4" /> Create Coupon

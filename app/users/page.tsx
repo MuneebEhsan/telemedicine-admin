@@ -13,6 +13,8 @@ export default function Users() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [total, setTotal] = useState(0);
 
   // Ban Modal State
@@ -34,6 +36,8 @@ export default function Users() {
       setLoading(true);
       let query = `page=${page}&search=${search}`;
       if (roleFilter) query += `&role=${roleFilter}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getAdminUsers(query);
       if (data.success) {
         setUsers(data.data);
@@ -48,7 +52,7 @@ export default function Users() {
 
   useEffect(() => {
     loadUsers();
-  }, [page, search, roleFilter]);
+  }, [page, search, roleFilter, dateFrom, dateTo]);
 
   const toggleBanStatus = async (userId: string, isBanned: boolean, userName: string) => {
     if (isBanned) {
@@ -167,6 +171,21 @@ export default function Users() {
                 <option value="pharmacy">Pharmacy</option>
                 <option value="admin">Admins</option>
               </select>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                />
+                <span className="text-slate-400 text-sm">to</span>
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-slate-500">{total} total users</span>

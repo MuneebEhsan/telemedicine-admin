@@ -13,11 +13,15 @@ export default function Orders() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const query = `page=${page}&search=${search}${statusFilter ? `&status=${statusFilter}` : ""}`;
+      let query = `page=${page}&search=${search}${statusFilter ? `&status=${statusFilter}` : ""}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getAdminOrders(query);
       if (data.success) {
         setOrders(data.data.orders || data.data);
@@ -31,7 +35,7 @@ export default function Orders() {
 
   useEffect(() => {
     loadOrders();
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, dateFrom, dateTo]);
 
   const updateStatus = async (id: string, newStatus: string) => {
     if (confirm(`Change order status to ${newStatus}?`)) {
@@ -96,6 +100,21 @@ export default function Orders() {
                  <option value="delivered">Delivered</option>
                  <option value="cancelled">Cancelled</option>
                </select>
+               <div className="flex items-center gap-2">
+                 <input
+                   type="date"
+                   className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                   value={dateFrom}
+                   onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                 />
+                 <span className="text-slate-400 text-sm">to</span>
+                 <input
+                   type="date"
+                   className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                   value={dateTo}
+                   onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                 />
+               </div>
                <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 hover:bg-slate-50 relative">
                  Export PDF
                </button>

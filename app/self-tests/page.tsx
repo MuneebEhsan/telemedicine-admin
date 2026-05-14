@@ -19,6 +19,8 @@ export default function SelfTestsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [riskFilter, setRiskFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const limit = 20;
 
   const load = async () => {
@@ -26,6 +28,8 @@ export default function SelfTestsPage() {
       setLoading(true);
       let query = `page=${page}&limit=${limit}`;
       if (riskFilter) query += `&riskLevel=${riskFilter}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getAllSelfTests(query);
       if (data.success) {
         setTests(data.data);
@@ -38,7 +42,7 @@ export default function SelfTestsPage() {
     }
   };
 
-  useEffect(() => { load(); }, [page, riskFilter]);
+  useEffect(() => { load(); }, [page, riskFilter, dateFrom, dateTo]);
 
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -61,6 +65,21 @@ export default function SelfTestsPage() {
                 <option value="moderate">Moderate Risk</option>
                 <option value="high">High Risk</option>
               </select>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                />
+                <span className="text-slate-400 text-sm">to</span>
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                />
+              </div>
             </div>
             <span className="text-sm text-slate-500">{total} total results</span>
           </div>
