@@ -60,12 +60,40 @@ export default function Sidebar() {
   const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
+    // Initial load from localStorage for speed
     const role = localStorage.getItem("userRole") as "admin" | "pharmacy" | "staff";
     if (role) setUserRole(role);
     try {
       const perms = JSON.parse(localStorage.getItem("userPermissions") || "[]");
       setPermissions(perms);
     } catch(e) {}
+
+    // Fetch fresh data from API to ensure accuracy
+    const fetchFreshData = async () => {
+      try {
+        const token = localStorage.getItem("adminToken");
+        if (!token) return;
+
+        const res = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1") + "/users/me", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (data.success && data.data.user) {
+          const user = data.data.user;
+          setUserRole(user.role);
+          setPermissions(user.permissions || []);
+          
+          // Sync back to localStorage
+          localStorage.setItem("userRole", user.role);
+          localStorage.setItem("userPermissions", JSON.stringify(user.permissions || []));
+        }
+      } catch (err) {
+        console.error("Failed to sync sidebar permissions:", err);
+      }
+    };
+
+    fetchFreshData();
   }, []);
 
   const handleLogout = () => {
