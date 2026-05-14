@@ -341,7 +341,14 @@ export default function StaffManagement() {
                   {MODULES.map(module => {
                     const isChecked = form.permissions.includes(module.id);
                     return (
-                      <label key={module.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
+                      <label 
+                        key={module.id} 
+                        className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          togglePermission(module.id);
+                        }}
+                      >
                         <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors
                           ${isChecked ? 'bg-[#8B5CF6] border-[#8B5CF6] text-white' : 'bg-white border-slate-300'}`}>
                           {isChecked && <Check className="w-3.5 h-3.5" />}
