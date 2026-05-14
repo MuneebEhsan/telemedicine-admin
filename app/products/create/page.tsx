@@ -9,6 +9,8 @@ import Link from "next/link";
 import dynamic from 'next/dynamic';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+import 'react-quill-new/dist/quill.snow.css';
 
 export default function CreateProduct() {
   const router = useRouter();
@@ -259,7 +261,14 @@ export default function CreateProduct() {
                      </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Detailed Description</label>
-                        <textarea name="description" rows={5} value={formData.description} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all resize-none" placeholder="Comprehensive product details..."></textarea>
+                        <div className="bg-white rounded-lg overflow-hidden">
+                           <ReactQuill 
+                              theme="snow" 
+                              value={formData.description} 
+                              onChange={(value) => setFormData(prev => ({ ...prev, description: value }))} 
+                              className="h-48 mb-12"
+                           />
+                        </div>
                      </div>
                   </div>
                </div>
