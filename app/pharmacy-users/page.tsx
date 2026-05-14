@@ -7,12 +7,12 @@ import { adminApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
-export default function Users() {
+export default function PharmacyUsers() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
+
   const [total, setTotal] = useState(0);
 
   // Ban Modal State
@@ -28,12 +28,20 @@ export default function Users() {
     userName: ""
   });
 
+  // Create Pharmacy Modal
+  const [pharmacyModal, setPharmacyModal] = useState(false);
+  const [pharmacyForm, setPharmacyForm] = useState({
+    name: "",
+    phone: "",
+    password: "",
+    email: "",
+  });
+  const [pharmacyLoading, setPharmacyLoading] = useState(false);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      let query = `page=${page}&search=${search}`;
-      if (roleFilter) query += `&role=${roleFilter}`;
+      let query = `page=${page}&search=${search}&role=pharmacy`;
       const data = await adminApi.getAdminUsers(query);
       if (data.success) {
         setUsers(data.data);
@@ -48,7 +56,7 @@ export default function Users() {
 
   useEffect(() => {
     loadUsers();
-  }, [page, search, roleFilter]);
+  }, [page, search]);
 
   const toggleBanStatus = async (userId: string, isBanned: boolean, userName: string) => {
     if (isBanned) {
@@ -94,6 +102,28 @@ export default function Users() {
     }
   };
 
+  const handleCreatePharmacy = async () => {
+    if (!pharmacyForm.name.trim() || !pharmacyForm.phone.trim() || !pharmacyForm.password.trim()) {
+      alert("Name, phone, and password are required.");
+      return;
+    }
+    try {
+      setPharmacyLoading(true);
+      await adminApi.createPharmacyUser({
+        name: pharmacyForm.name,
+        phone: pharmacyForm.phone,
+        password: pharmacyForm.password,
+        email: pharmacyForm.email || undefined,
+      });
+      setPharmacyModal(false);
+      setPharmacyForm({ name: "", phone: "", password: "", email: "" });
+      loadUsers();
+    } catch (e: any) {
+      alert(e.message || "Failed to create pharmacy user.");
+    } finally {
+      setPharmacyLoading(false);
+    }
+  };
 
   const handleMakePharmacy = async (userId: string, userName: string) => {
     if (!confirm(`Make "${userName}" a Pharmacy user? They will be able to log into the pharmacy panel.`)) return;
@@ -139,7 +169,7 @@ export default function Users() {
 
   return (
     <>
-      <Header title="User Management" />
+      <Header title="Pharmacy Users" />
       
       <div className="p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
@@ -156,20 +186,17 @@ export default function Users() {
                   setPage(1);
                 }}
               />
-              <select
-                className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none"
-                value={roleFilter}
-                onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-              >
-                <option value="">All Roles</option>
-                <option value="patient">Patients</option>
-                <option value="doctor">Doctors</option>
-                <option value="pharmacy">Pharmacy</option>
-                <option value="admin">Admins</option>
-              </select>
+
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-slate-500">{total} total users</span>
+              <button
+                onClick={() => setPharmacyModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#8B5CF6] text-white rounded-lg text-sm font-medium hover:bg-[#7C3AED] transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Create Pharmacy Login
+              </button>
             </div>
           </div>
           
@@ -315,6 +342,88 @@ export default function Users() {
         </div>
       </div>
 
+      {/* Create Pharmacy User Modal */}
+      {pharmacyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 animate-scale-up border border-slate-100">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-[#8B5CF6]/10 text-[#8B5CF6] rounded-xl flex items-center justify-center">
+                <Pill className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-display font-bold text-[#0B132B]">Create Pharmacy Login</h2>
+                <p className="text-xs text-slate-500">This account can manage prescriptions & orders</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Duraup Pharmacy"
+                  value={pharmacyForm.name}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, name: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Phone Number *</label>
+                <input
+                  type="tel"
+                  placeholder="+919876543210"
+                  value={pharmacyForm.phone}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, phone: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Password *</label>
+                <input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={pharmacyForm.password}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, password: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email (optional)</label>
+                <input
+                  type="email"
+                  placeholder="pharmacy@duraup.com"
+                  value={pharmacyForm.email}
+                  onChange={(e) => setPharmacyForm((p) => ({ ...p, email: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                />
+              </div>
+
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-xs text-violet-700">
+                💊 This user will be able to login at the admin panel and manage prescriptions & orders only. They won't have access to products, users, or settings.
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setPharmacyModal(false);
+                    setPharmacyForm({ name: "", phone: "", password: "", email: "" });
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePharmacy}
+                  disabled={pharmacyLoading}
+                  className="flex-1 px-4 py-3 rounded-xl bg-[#8B5CF6] text-white font-bold text-xs uppercase tracking-widest hover:bg-[#7C3AED] shadow-lg shadow-[#8B5CF6]/20 transition-all disabled:opacity-60"
+                >
+                  {pharmacyLoading ? "Creating..." : "Create Account"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Ban Reason Modal */}
       {banModal.isOpen && (

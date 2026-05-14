@@ -33,6 +33,7 @@ const allNavItems: NavItem[] = [
 
   // --- Admin-only section ---
   { name: "Users", href: "/users", icon: Users, roles: ["admin"] },
+  { name: "Pharmacy Users", href: "/pharmacy-users", icon: Pill, roles: ["admin"] },
   { name: "Doctor Applications", href: "/doctors/applications", icon: ClipboardCheck, roles: ["admin"] },
   { name: "Consultations", href: "/consultations", icon: Video, roles: ["admin"] },
   { name: "Self Tests", href: "/self-tests", icon: Activity, roles: ["admin"] },
