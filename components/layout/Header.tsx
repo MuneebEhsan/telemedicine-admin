@@ -1,4 +1,5 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, User } from "lucide-react";
+import Link from "next/link";
 
 export default function Header({ title }: { title: string }) {
   return (
@@ -20,15 +21,15 @@ export default function Header({ title }: { title: string }) {
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
         
-        <div className="flex items-center gap-3 border-l border-slate-200 pl-6">
+        <Link href="/profile" className="flex items-center gap-3 border-l border-slate-200 pl-6 hover:bg-slate-50 p-1.5 rounded-lg transition-colors cursor-pointer">
           <div className="text-right">
-            <p className="text-sm font-medium text-[#0B132B] leading-none">Admin User</p>
-            <p className="text-xs text-slate-500 mt-1">Superadmin</p>
+            <p className="text-sm font-medium text-[#0B132B] leading-none">My Profile</p>
+            <p className="text-xs text-slate-500 mt-1">Manage Account</p>
           </div>
           <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-[#0B132B] font-display font-semibold text-sm">
-            A
+            <User className="w-4 h-4 text-slate-500" />
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

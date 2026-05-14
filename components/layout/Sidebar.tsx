@@ -25,28 +25,30 @@ interface NavItem {
   name: string;
   href: string;
   icon: any;
-  roles: ("admin" | "pharmacy")[];
+  roles: ("admin" | "pharmacy" | "staff")[];
+  moduleId?: string; // Corresponds to the permissions array
 }
 
 const allNavItems: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "pharmacy"] },
 
-  // --- Admin-only section ---
-  { name: "Users", href: "/users", icon: Users, roles: ["admin"] },
-  { name: "Pharmacy Users", href: "/pharmacy-users", icon: Pill, roles: ["admin"] },
-  { name: "Doctor Applications", href: "/doctors/applications", icon: ClipboardCheck, roles: ["admin"] },
-  { name: "Consultations", href: "/consultations", icon: Video, roles: ["admin"] },
-  { name: "Self Tests", href: "/self-tests", icon: Activity, roles: ["admin"] },
-  { name: "Products", href: "/products", icon: ShoppingBag, roles: ["admin"] },
-  { name: "Categories", href: "/categories", icon: FolderTree, roles: ["admin"] },
-  { name: "Subcategories", href: "/subcategories", icon: FolderTree, roles: ["admin"] },
-  { name: "Orders", href: "/orders", icon: ClipboardList, roles: ["admin"] },
-  { name: "Coupons", href: "/coupons", icon: Ticket, roles: ["admin"] },
+  // --- Admin/Staff section ---
+  { name: "Users", href: "/users", icon: Users, roles: ["admin", "staff"], moduleId: "users" },
+  { name: "Pharmacy Users", href: "/pharmacy-users", icon: Pill, roles: ["admin", "staff"], moduleId: "pharmacy-users" },
+  { name: "Staff Management", href: "/staff", icon: Users, roles: ["admin", "staff"], moduleId: "staff" },
+  { name: "Doctor Applications", href: "/doctors/applications", icon: ClipboardCheck, roles: ["admin", "staff"], moduleId: "doctors" },
+  { name: "Consultations", href: "/consultations", icon: Video, roles: ["admin", "staff"], moduleId: "consultations" },
+  { name: "Self Tests", href: "/self-tests", icon: Activity, roles: ["admin", "staff"], moduleId: "self-tests" },
+  { name: "Products", href: "/products", icon: ShoppingBag, roles: ["admin", "staff"], moduleId: "products" },
+  { name: "Categories", href: "/categories", icon: FolderTree, roles: ["admin", "staff"], moduleId: "products" },
+  { name: "Subcategories", href: "/subcategories", icon: FolderTree, roles: ["admin", "staff"], moduleId: "products" },
+  { name: "Orders", href: "/orders", icon: ClipboardList, roles: ["admin", "staff"], moduleId: "orders" },
+  { name: "Coupons", href: "/coupons", icon: Ticket, roles: ["admin", "staff"], moduleId: "coupons" },
   { name: "Assessment", href: "/assessment-questions", icon: ClipboardCheck, roles: ["admin"] },
 
   // --- Pharmacy section (visible to both admin and pharmacy) ---
-  { name: "Prescription Reviews", href: "/prescriptions", icon: FileCheck, roles: ["admin", "pharmacy"] },
-  { name: "Pharmacy Orders", href: "/pharmacy-orders", icon: Package, roles: ["admin", "pharmacy"] },
+  { name: "Prescription Reviews", href: "/prescriptions", icon: FileCheck, roles: ["admin", "pharmacy", "staff"], moduleId: "prescriptions" },
+  { name: "Pharmacy Orders", href: "/pharmacy-orders", icon: Package, roles: ["admin", "pharmacy", "staff"], moduleId: "orders" },
 
   // --- Admin-only settings ---
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
@@ -54,11 +56,16 @@ const allNavItems: NavItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<"admin" | "pharmacy">("admin");
+  const [userRole, setUserRole] = useState<"admin" | "pharmacy" | "staff">("admin");
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
-    const role = localStorage.getItem("userRole") as "admin" | "pharmacy";
+    const role = localStorage.getItem("userRole") as "admin" | "pharmacy" | "staff";
     if (role) setUserRole(role);
+    try {
+      const perms = JSON.parse(localStorage.getItem("userPermissions") || "[]");
+      setPermissions(perms);
+    } catch(e) {}
   }, []);
 
   const handleLogout = () => {
@@ -68,7 +75,13 @@ export default function Sidebar() {
     window.location.href = "/login";
   };
 
-  const visibleItems = allNavItems.filter((item) => item.roles.includes(userRole));
+  const visibleItems = allNavItems.filter((item) => {
+    if (!item.roles.includes(userRole)) return false;
+    if (userRole === "staff" && item.moduleId) {
+      return permissions.includes(item.moduleId);
+    }
+    return true;
+  });
 
   // Group items for visual sections
   const pharmacyItems = visibleItems.filter((item) =>
@@ -94,8 +107,8 @@ export default function Sidebar() {
           </div>
           <span className="font-display font-semibold text-xl tracking-tight text-[#072A28]">
             Duraup{" "}
-            <span className={isPharmacy ? "text-[#8B5CF6]" : "text-[#D4AF37]"}>
-              {isPharmacy ? "Pharmacy" : "Admin"}
+            <span className={isPharmacy ? "text-[#8B5CF6]" : userRole === "staff" ? "text-blue-500" : "text-[#D4AF37]"}>
+              {isPharmacy ? "Pharmacy" : userRole === "staff" ? "Staff" : "Admin"}
             </span>
           </span>
         </Link>

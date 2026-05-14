@@ -58,6 +58,16 @@ export const banUser = (id: string, reason: string) => fetchWithAuth(`/admin/use
 export const unbanUser = (id: string) => fetchWithAuth(`/admin/users/${id}/unban`, { method: "POST" });
 export const deleteUser = (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: "DELETE" });
 
+/** Profile APIs */
+export const updateProfile = (data: any) => fetchWithAuth(`/users/me`, { method: "PUT", body: data }, true); // Uses FormData for avatar
+export const updatePassword = (data: any) => fetchWithAuth(`/users/me/password`, { method: "PUT", body: JSON.stringify(data) });
+
+/** Staff APIs */
+export const getAdminStaff = (query = "") => fetchWithAuth(`/admin/staff${query ? `?${query}` : ""}`);
+export const createStaff = (data: any) => fetchWithAuth("/admin/staff", { method: "POST", body: JSON.stringify(data) });
+export const updateStaff = (id: string, data: any) => fetchWithAuth(`/admin/staff/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteStaff = (id: string) => fetchWithAuth(`/admin/staff/${id}`, { method: "DELETE" });
+
 /** Product APIs */
 export const getAdminProducts = (query = "") => fetchWithAuth(`/admin/products${query ? `?${query}` : ""}`);
 export const getAdminProduct = (id: string) => fetchWithAuth(`/admin/products/${id}`);
@@ -157,6 +167,8 @@ export const deleteCoupon = (id: string) => fetchWithAuth(`/admin/coupons/${id}`
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
+  updateProfile, updatePassword,
+  getAdminStaff, createStaff, updateStaff, deleteStaff,
   createPharmacyUser, updateUserRole,
   getPendingDoctors, getApprovedDoctors, approveDoctor, rejectDoctor,
   getAdminProducts, getAdminProduct, createProduct, updateProduct, deleteProduct, updateProductStock, bulkUpdateProductStatus,

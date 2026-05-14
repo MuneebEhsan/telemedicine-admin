@@ -33,18 +33,29 @@ export default function Login() {
       }
 
       const userRole = data.data.user.role;
-      if (!["admin", "pharmacy"].includes(userRole)) {
-        throw new Error("Access Denied: Admin or Pharmacy role required");
+      if (!["admin", "pharmacy", "staff"].includes(userRole)) {
+        throw new Error("Access Denied: Admin, Pharmacy, or Staff role required");
       }
 
       localStorage.setItem("adminToken", data.data.accessToken);
       localStorage.setItem("userRole", userRole);
+      localStorage.setItem("userPermissions", JSON.stringify(data.data.user.permissions || []));
       if (data.data.refreshToken) {
          localStorage.setItem("adminRefreshToken", data.data.refreshToken);
       }
       
-      // Pharmacy users go straight to prescriptions, admin goes to dashboard
-      router.push(userRole === "pharmacy" ? "/prescriptions" : "/");
+      // Routing based on role
+      if (userRole === "pharmacy") router.push("/prescriptions");
+      else if (userRole === "staff") {
+        const perms = data.data.user.permissions || [];
+        if (perms.length > 0) {
+          router.push(`/${perms[0] === 'dashboard' ? '' : perms[0]}`);
+        } else {
+          router.push("/profile");
+        }
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
