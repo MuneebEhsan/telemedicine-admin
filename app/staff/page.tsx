@@ -37,6 +37,7 @@ export default function StaffManagement() {
     permissions: [] as string[],
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const loadStaff = async () => {
     try {
@@ -66,8 +67,9 @@ export default function StaffManagement() {
   };
 
   const handleCreateStaff = async () => {
+    setFormError("");
     if (!form.name.trim() || !form.phone.trim() || !form.password.trim()) {
-      alert("Name, phone, and password are required.");
+      setFormError("Name, phone, and password are required.");
       return;
     }
     try {
@@ -77,7 +79,7 @@ export default function StaffManagement() {
       setForm({ name: "", phone: "", password: "", permissions: [] });
       loadStaff();
     } catch (e: any) {
-      alert(e.message || "Failed to create staff.");
+      setFormError(e.message || "Failed to create staff.");
     } finally {
       setFormLoading(false);
     }
@@ -85,6 +87,7 @@ export default function StaffManagement() {
 
   const handleUpdateStaff = async () => {
     if (!editModal.staff) return;
+    setFormError("");
     try {
       setFormLoading(true);
       const updateData: any = {
@@ -100,13 +103,14 @@ export default function StaffManagement() {
       setForm({ name: "", phone: "", password: "", permissions: [] });
       loadStaff();
     } catch (e: any) {
-      alert(e.message || "Failed to update staff.");
+      setFormError(e.message || "Failed to update staff.");
     } finally {
       setFormLoading(false);
     }
   };
 
   const openEditModal = (staff: any) => {
+    setFormError("");
     setForm({
       name: staff.name,
       phone: staff.phone,
@@ -168,6 +172,7 @@ export default function StaffManagement() {
               <button
                 onClick={() => {
                   setForm({ name: "", phone: "", password: "", permissions: [] });
+                  setFormError("");
                   setCreateModal(true);
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-[#8B5CF6] text-white rounded-lg text-sm font-medium hover:bg-[#7C3AED] transition-colors shadow-sm"
@@ -298,6 +303,13 @@ export default function StaffManagement() {
                 <p className="text-xs text-slate-500">Configure details and platform access</p>
               </div>
             </div>
+
+            {formError && (
+              <div className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-200 flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-red-500 text-white flex justify-center items-center font-bold text-[10px]">!</div>
+                {formError}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column: Details */}
