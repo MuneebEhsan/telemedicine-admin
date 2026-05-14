@@ -28,6 +28,8 @@ export default function ConsultationsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [total, setTotal] = useState(0);
   const limit = 20;
 
@@ -37,6 +39,8 @@ export default function ConsultationsPage() {
       let query = `page=${page}&limit=${limit}`;
       if (search) query += `&search=${encodeURIComponent(search)}`;
       if (statusFilter) query += `&status=${statusFilter}`;
+      if (dateFrom) query += `&dateFrom=${dateFrom}`;
+      if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getAllConsultations(query);
       if (data.success) {
         setConsultations(data.data);
@@ -49,7 +53,7 @@ export default function ConsultationsPage() {
     }
   };
 
-  useEffect(() => { load(); }, [page, search, statusFilter]);
+  useEffect(() => { load(); }, [page, search, statusFilter, dateFrom, dateTo]);
 
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -79,12 +83,27 @@ export default function ConsultationsPage() {
                 />
               </div>
               <select
-                className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               >
                 {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                />
+                <span className="text-slate-400 text-sm">to</span>
+                <input
+                  type="date"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                />
+              </div>
             </div>
             <span className="text-sm text-slate-500">{total} total consultations</span>
           </div>
