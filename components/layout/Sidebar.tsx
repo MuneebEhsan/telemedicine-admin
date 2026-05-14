@@ -17,7 +17,8 @@ import {
   FileCheck,
   Pill,
   Package,
-  Ticket,
+   Ticket,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ interface NavItem {
 
 const allNavItems: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "pharmacy", "staff"], moduleId: "dashboard" },
+  { name: "My Profile", href: "/profile", icon: UserCircle, roles: ["admin", "pharmacy", "staff"] },
 
   // --- Admin/Staff section ---
   { name: "Users", href: "/users", icon: Users, roles: ["admin", "staff"], moduleId: "users" },
