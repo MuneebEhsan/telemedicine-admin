@@ -30,7 +30,7 @@ interface NavItem {
 }
 
 const allNavItems: NavItem[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "pharmacy"] },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "pharmacy", "staff"], moduleId: "dashboard" },
 
   // --- Admin/Staff section ---
   { name: "Users", href: "/users", icon: Users, roles: ["admin", "staff"], moduleId: "users" },
