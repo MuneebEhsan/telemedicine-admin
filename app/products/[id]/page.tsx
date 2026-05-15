@@ -293,7 +293,15 @@ export default function EditProduct() {
                      </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Short Description</label>
-                        <input type="text" name="shortDescription" value={formData.shortDescription} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" placeholder="Brief summary (max 100 characters)" />
+                        <div className="bg-white rounded-lg overflow-hidden">
+                           <ReactQuill 
+                              theme="snow" 
+                              value={formData.shortDescription} 
+                              onChange={(value) => setFormData(prev => ({ ...prev, shortDescription: value }))} 
+                              className="h-32 mb-12"
+                              placeholder="Brief summary..."
+                           />
+                        </div>
                      </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Detailed Description</label>
