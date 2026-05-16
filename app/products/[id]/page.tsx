@@ -248,6 +248,33 @@ export default function EditProduct() {
       }
 
       await adminApi.updateProduct(params.id as string, payload);
+      setFormData({
+        name: "",
+        description: "",
+        shortDescription: "",
+        price: 0,
+        mrp: 0,
+        images: [] as string[],
+        thumbnail: "",
+        category: "",
+        subCategory: "",
+        healthConditions: "",
+        tags: "",
+        badge: "none",
+        requiresPrescription: false,
+        stock: 0,
+        lowStockThreshold: 10,
+        manufacturer: "",
+        composition: "",
+        dosageForm: "",
+        packSize: "",
+        hsnCode: "",
+        gstPercent: 12,
+        status: "active",
+        howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
+        howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
+        videoUrl: ""
+      });
       router.push('/products');
       router.refresh(); // Refresh the list
     } catch (error: any) {
