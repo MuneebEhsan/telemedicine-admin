@@ -167,6 +167,14 @@ export const createCoupon = (data: any) => fetchWithAuth("/admin/coupons", { met
 export const updateCoupon = (id: string, data: any) => fetchWithAuth(`/admin/coupons/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteCoupon = (id: string) => fetchWithAuth(`/admin/coupons/${id}`, { method: "DELETE" });
 
+/** Product Review APIs */
+export const getAdminReviews = (query = "") => fetchWithAuth(`/admin/reviews${query ? `?${query}` : ""}`);
+export const updateReviewStatus = (id: string, action: "approve" | "reject") =>
+  fetchWithAuth(`/admin/reviews/${id}/status`, { method: "PUT", body: JSON.stringify({ action }) });
+export const deleteReview = (id: string) => fetchWithAuth(`/admin/reviews/${id}`, { method: "DELETE" });
+export const addAdminReview = (data: { productId: string; rating: number; title?: string; body: string }) =>
+  fetchWithAuth("/admin/reviews", { method: "POST", body: JSON.stringify(data) });
+
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
@@ -186,5 +194,6 @@ export const adminApi = {
   getAllSelfTests, getSelfTestById, getUserSelfTests,
   getPrescriptionOrders, getPrescriptionOrder, reviewPrescription,
   getCoupons, getCouponById, createCoupon, updateCoupon, deleteCoupon,
+  getAdminReviews, updateReviewStatus, deleteReview, addAdminReview,
 };
 
