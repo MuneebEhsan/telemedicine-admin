@@ -46,7 +46,8 @@ export default function CreateProduct() {
     status: "active",
     howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
     howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
-    videoUrl: ""
+    videoUrl: "",
+    packOffers: [] as { quantity: number; offerPrice: number; label: string; isActive: boolean }[]
   });
 
   useEffect(() => {
@@ -203,7 +204,8 @@ export default function CreateProduct() {
         tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean),
         badge: formData.badge === 'none' ? '' : formData.badge,
         howItWorks: formData.howItWorks,
-        howToUse: formData.howToUse
+        howToUse: formData.howToUse,
+        packOffers: formData.packOffers
       };
       
       // Some backends prefer subCategory to not be sent if it's empty
@@ -237,7 +239,8 @@ export default function CreateProduct() {
         status: "active",
         howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
         howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
-        videoUrl: ""
+        videoUrl: "",
+        packOffers: []
       });
       router.push('/products');
       router.refresh(); // Refresh the list
@@ -642,6 +645,110 @@ export default function CreateProduct() {
                            <input type="number" min="0" max="100" name="gstPercent" value={formData.gstPercent} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" />
                         </div>
                      </div>
+                  </div>
+               </div>
+
+               {/* Pack Offers */}
+               <div className="glass-panel p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                  <h3 className="text-base font-semibold text-[#0B132B] border-b border-slate-100 pb-3 flex items-center justify-between">
+                     Pack / Bundle Offers
+                     <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          packOffers: [...prev.packOffers, { quantity: 2, offerPrice: 0, label: '', isActive: true }]
+                        }))}
+                        className="text-xs font-bold text-[#14B8A6] hover:underline"
+                     >
+                        + Add Offer
+                     </button>
+                  </h3>
+
+                  {formData.packOffers.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">No pack offers yet. Click "+ Add Offer" to create one.</p>
+                  )}
+
+                  <div className="space-y-4">
+                     {formData.packOffers.map((offer, idx) => {
+                        const saving = offer.quantity * formData.price - offer.offerPrice;
+                        return (
+                           <div key={idx} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3 relative">
+                              <button
+                                 type="button"
+                                 onClick={() => setFormData(prev => ({ ...prev, packOffers: prev.packOffers.filter((_, i) => i !== idx) }))}
+                                 className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                              >
+                                 <X className="w-4 h-4" />
+                              </button>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                 <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Qty for Offer</label>
+                                    <input
+                                       type="number" min="2"
+                                       value={offer.quantity}
+                                       onChange={e => {
+                                          const v = [...formData.packOffers];
+                                          v[idx].quantity = Number(e.target.value);
+                                          setFormData(prev => ({ ...prev, packOffers: v }));
+                                       }}
+                                       className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none"
+                                    />
+                                 </div>
+                                 <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Offer Price (₹ total)</label>
+                                    <input
+                                       type="number" min="0" step="0.01"
+                                       value={offer.offerPrice}
+                                       onChange={e => {
+                                          const v = [...formData.packOffers];
+                                          v[idx].offerPrice = Number(e.target.value);
+                                          setFormData(prev => ({ ...prev, packOffers: v }));
+                                       }}
+                                       className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none"
+                                    />
+                                 </div>
+                              </div>
+
+                              <div>
+                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Label (optional)</label>
+                                 <input
+                                    type="text"
+                                    value={offer.label}
+                                    onChange={e => {
+                                       const v = [...formData.packOffers];
+                                       v[idx].label = e.target.value;
+                                       setFormData(prev => ({ ...prev, packOffers: v }));
+                                    }}
+                                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded text-sm focus:outline-none"
+                                    placeholder={`Pack of ${offer.quantity}`}
+                                 />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-2">
+                                    <input
+                                       type="checkbox"
+                                       id={`offer-active-${idx}`}
+                                       checked={offer.isActive}
+                                       onChange={e => {
+                                          const v = [...formData.packOffers];
+                                          v[idx].isActive = e.target.checked;
+                                          setFormData(prev => ({ ...prev, packOffers: v }));
+                                       }}
+                                       className="w-4 h-4 text-[#14B8A6] rounded border-slate-300"
+                                    />
+                                    <label htmlFor={`offer-active-${idx}`} className="text-xs font-medium text-slate-600">Active</label>
+                                 </div>
+                                 {formData.price > 0 && offer.offerPrice > 0 && saving > 0 && (
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                       Customer saves ₹{saving.toFixed(2)}
+                                    </span>
+                                 )}
+                              </div>
+                           </div>
+                        );
+                     })}
                   </div>
                </div>
 
