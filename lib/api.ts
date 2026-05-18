@@ -172,7 +172,7 @@ export const getAdminReviews = (query = "") => fetchWithAuth(`/admin/reviews${qu
 export const updateReviewStatus = (id: string, action: "approve" | "reject") =>
   fetchWithAuth(`/admin/reviews/${id}/status`, { method: "PUT", body: JSON.stringify({ action }) });
 export const deleteReview = (id: string) => fetchWithAuth(`/admin/reviews/${id}`, { method: "DELETE" });
-export const addAdminReview = (data: { productId: string; rating: number; title?: string; body: string }) =>
+export const addAdminReview = (data: { productId: string; rating: number; title?: string; body: string; reviewerName?: string }) =>
   fetchWithAuth("/admin/reviews", { method: "POST", body: JSON.stringify(data) });
 
 export const adminApi = {

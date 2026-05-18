@@ -22,7 +22,7 @@ export default function ReviewsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Add review form
-  const [addForm, setAddForm] = useState({ productId: "", rating: 5, title: "", body: "" });
+  const [addForm, setAddForm] = useState({ productId: "", rating: 5, title: "", body: "", reviewerName: "" });
   const [addError, setAddError] = useState<string | null>(null);
   const [addLoading, setAddLoading] = useState(false);
 
@@ -85,7 +85,7 @@ export default function ReviewsPage() {
   };
 
   const openAddModal = () => {
-    setAddForm({ productId: "", rating: 5, title: "", body: "" });
+    setAddForm({ productId: "", rating: 5, title: "", body: "", reviewerName: "" });
     setSelectedProduct(null);
     setProductSearch("");
     setAddError(null);
@@ -153,6 +153,7 @@ export default function ReviewsPage() {
         rating: addForm.rating,
         title: addForm.title,
         body: addForm.body,
+        reviewerName: addForm.reviewerName,
       });
       setAddModalOpen(false);
       loadReviews();
@@ -224,7 +225,7 @@ export default function ReviewsPage() {
                         <p className="text-xs text-slate-400">{review.product?.slug || ""}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-medium">{review.user?.name || "—"}</p>
+                        <p className="font-medium">{review.reviewerName || review.user?.name || "—"}</p>
                         <p className="text-xs text-slate-400">{review.user?.phone || ""}</p>
                       </td>
                       <td className="px-6 py-4"><StarRow rating={review.rating} /></td>
@@ -411,6 +412,18 @@ export default function ReviewsPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Reviewer Name */}
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Customer Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={addForm.reviewerName}
+                  onChange={(e) => setAddForm((f) => ({ ...f, reviewerName: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                />
               </div>
 
               {/* Title */}
