@@ -1,9 +1,117 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, Settings2, Truck, CreditCard, Stethoscope, Clock, MapPin } from "lucide-react";
+import { Save, Settings2, Truck, CreditCard, Stethoscope, Clock, MapPin, Phone, Mail, Globe, HelpCircle, FileText } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+function FAQEditor({
+  setting,
+  saving,
+  onSave,
+}: {
+  setting: any;
+  saving: boolean;
+  onSave: (key: string, value: FAQItem[], description?: string) => void;
+}) {
+  const [items, setItems] = useState<FAQItem[]>([]);
+
+  // Sync state with setting.value when it changes
+  useEffect(() => {
+    if (setting && Array.isArray(setting.value)) {
+      setItems(setting.value);
+    }
+  }, [setting]);
+
+  if (!setting) return null;
+
+  const handleItemChange = (index: number, field: "question" | "answer", val: string) => {
+    const updated = [...items];
+    updated[index] = { ...updated[index], [field]: val };
+    setItems(updated);
+  };
+
+  const handleAddItem = () => {
+    setItems([...items, { question: "", answer: "" }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800">Homepage FAQs List</h3>
+          <p className="text-xs text-slate-500">Configure frequently asked questions rendered on the website homepage.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleAddItem}
+          className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#0F3C3A] font-semibold text-xs rounded-lg transition-all"
+        >
+          + Add FAQ
+        </button>
+      </div>
+
+      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+        {items.map((item, index) => (
+          <div key={index} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-3 relative group">
+            <button
+              type="button"
+              onClick={() => handleRemoveItem(index)}
+              className="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors text-xl font-bold"
+              title="Remove FAQ"
+            >
+              ×
+            </button>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Question {index + 1}</label>
+              <input
+                type="text"
+                value={item.question}
+                onChange={(e) => handleItemChange(index, "question", e.target.value)}
+                placeholder="e.g. How do consultations work?"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Answer</label>
+              <textarea
+                value={item.answer}
+                onChange={(e) => handleItemChange(index, "answer", e.target.value)}
+                placeholder="Provide a detailed, helpful answer..."
+                rows={2}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
+              />
+            </div>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <div className="text-center py-8 border border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
+            No FAQs configured. Click "+ Add FAQ" to create one.
+          </div>
+        )}
+      </div>
+
+      <div className="pt-2 border-t border-slate-100 flex justify-end">
+        <button
+          onClick={() => onSave(setting.key, items, setting.description)}
+          disabled={saving}
+          className="btn-primary flex items-center gap-2 px-6"
+        >
+          {saving ? "Saving..." : <><Save className="w-4 h-4" /> Save FAQs</>}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Settings() {
   const [settings, setSettings] = useState<any[]>([]);
@@ -50,6 +158,17 @@ export default function Settings() {
   const minOrder = getSetting('min_order_amount');
   const deliveryAreas = getSetting('delivery_areas');
 
+  const contactPhone = getSetting('contact_phone');
+  const contactEmail = getSetting('contact_email');
+  const workingHours = getSetting('working_hours');
+  const location = getSetting('location');
+  const socialFacebook = getSetting('social_facebook');
+  const socialInstagram = getSetting('social_instagram');
+  const socialTwitter = getSetting('social_twitter');
+  const socialLinkedIn = getSetting('social_linkedin');
+  const aboutUs = getSetting('about_us');
+  const faqs = getSetting('faqs');
+
   const NumberField = ({ setting, label, desc, id }: { setting: any; label: string; desc?: string; id: string }) => {
     if (!setting) return null;
     return (
@@ -73,6 +192,55 @@ export default function Settings() {
       </div>
     );
   };
+
+  const TextField = ({ setting, label, desc, id }: { setting: any; label: string; desc?: string; id: string }) => {
+    if (!setting) return null;
+    return (
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+        {desc && <p className="text-xs text-slate-500 mb-3">{desc}</p>}
+        <div className="flex gap-4 max-w-2xl">
+          <input type="text" defaultValue={setting.value} id={id}
+            className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" />
+          <button
+            onClick={() => {
+              const val = (document.getElementById(id) as HTMLInputElement).value;
+              handleUpdate(setting.key, val, setting.description);
+            }}
+            disabled={saving === setting.key}
+            className="btn-primary flex items-center gap-2 px-6 flex-shrink-0"
+          >
+            {saving === setting.key ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const TextAreaField = ({ setting, label, desc, id }: { setting: any; label: string; desc?: string; id: string }) => {
+    if (!setting) return null;
+    return (
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+        {desc && <p className="text-xs text-slate-500 mb-3">{desc}</p>}
+        <div className="space-y-3 max-w-2xl">
+          <textarea defaultValue={setting.value} id={id} rows={5}
+            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all resize-y" />
+          <button
+            onClick={() => {
+              const val = (document.getElementById(id) as HTMLTextAreaElement).value;
+              handleUpdate(setting.key, val, setting.description);
+            }}
+            disabled={saving === setting.key}
+            className="btn-primary flex items-center gap-2 px-6 flex-shrink-0"
+          >
+            {saving === setting.key ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
 
   const handleAddArea = () => {
     if (!areaInput.trim() || !deliveryAreas) return;
@@ -172,6 +340,56 @@ export default function Settings() {
                     <span className="text-xs text-slate-400 italic">All areas (no restrictions)</span>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Contact & Location Configuration */}
+            <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-[#F8FAFC]">
+                <Phone className="w-5 h-5 text-[#0F3C3A]" />
+                <h2 className="text-lg font-display font-semibold text-[#0B132B]">Contact & Location</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <TextField setting={contactPhone} label="Contact Phone Number" desc={contactPhone?.description} id="contactPhone" />
+                <TextField setting={contactEmail} label="Contact Email Address" desc={contactEmail?.description} id="contactEmail" />
+                <TextField setting={workingHours} label="Working Hours" desc={workingHours?.description} id="workingHours" />
+                <TextField setting={location} label="Location / Physical Address" desc={location?.description} id="location" />
+              </div>
+            </div>
+
+            {/* Social Media Links */}
+            <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-[#F8FAFC]">
+                <Globe className="w-5 h-5 text-[#0F3C3A]" />
+                <h2 className="text-lg font-display font-semibold text-[#0B132B]">Social Media Handles</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <TextField setting={socialFacebook} label="Facebook URL" desc={socialFacebook?.description} id="socialFacebook" />
+                <TextField setting={socialInstagram} label="Instagram URL" desc={socialInstagram?.description} id="socialInstagram" />
+                <TextField setting={socialTwitter} label="Twitter / X URL" desc={socialTwitter?.description} id="socialTwitter" />
+                <TextField setting={socialLinkedIn} label="LinkedIn URL" desc={socialLinkedIn?.description} id="socialLinkedIn" />
+              </div>
+            </div>
+
+            {/* About Page Content */}
+            <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-[#F8FAFC]">
+                <FileText className="w-5 h-5 text-[#0F3C3A]" />
+                <h2 className="text-lg font-display font-semibold text-[#0B132B]">About Page Text</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <TextAreaField setting={aboutUs} label="About Us Description" desc={aboutUs?.description} id="aboutUs" />
+              </div>
+            </div>
+
+            {/* FAQ Configuration */}
+            <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-[#F8FAFC]">
+                <HelpCircle className="w-5 h-5 text-[#0F3C3A]" />
+                <h2 className="text-lg font-display font-semibold text-[#0B132B]">Frequently Asked Questions</h2>
+              </div>
+              <div className="p-6">
+                <FAQEditor setting={faqs} saving={saving === faqs?.key} onSave={handleUpdate} />
               </div>
             </div>
           </>
