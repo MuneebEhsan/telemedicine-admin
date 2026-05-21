@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Save, Settings2, Truck, CreditCard, Stethoscope, Clock, MapPin, Phone, Mail, Globe, HelpCircle, FileText } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
+import dynamic from "next/dynamic";
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+import 'react-quill-new/dist/quill.snow.css';
 
 interface FAQItem {
   question: string;
@@ -108,6 +112,114 @@ function FAQEditor({
         >
           {saving ? "Saving..." : <><Save className="w-4 h-4" /> Save FAQs</>}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function RichTextField({
+  setting,
+  label,
+  desc,
+  saving,
+  onSave,
+}: {
+  setting: any;
+  label: string;
+  desc?: string;
+  saving: boolean;
+  onSave: (key: string, value: string, description?: string) => void;
+}) {
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (setting) {
+      setValue(setting.value || "");
+    }
+  }, [setting]);
+
+  const imageHandler = useMemo(() => {
+    return function(this: any) {
+      const quill = this.quill;
+      const input = document.createElement("input");
+      input.setAttribute("type", "file");
+      input.setAttribute("accept", "image/*");
+      input.click();
+
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (file) {
+          try {
+            const response = await adminApi.uploadAdminImage(file, "about");
+            if (response.success && response.data?.url) {
+              const url = response.data.url;
+              const range = quill.getSelection();
+              if (range) {
+                quill.insertEmbed(range.index, "image", url);
+                quill.setSelection(range.index + 1);
+              } else {
+                quill.insertEmbed(quill.getLength(), "image", url);
+              }
+            }
+          } catch (error) {
+            console.error("Failed to upload image inside Quill:", error);
+            alert("Failed to upload image");
+          }
+        }
+      };
+    };
+  }, []);
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'align': [] }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }), [imageHandler]);
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'align',
+    'link', 'image'
+  ];
+
+  if (!setting) return null;
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+      {desc && <p className="text-xs text-slate-500 mb-3">{desc}</p>}
+      <div className="space-y-3 max-w-3xl">
+        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+          <ReactQuill
+            theme="snow"
+            value={value}
+            onChange={setValue}
+            modules={modules}
+            formats={formats}
+            className="min-h-[250px] mb-12"
+            placeholder="Write about your telemedicine pharmacy..."
+          />
+        </div>
+        <div className="pt-2 flex justify-end">
+          <button
+            onClick={() => onSave(setting.key, value, setting.description)}
+            disabled={saving}
+            className="btn-primary flex items-center gap-2 px-6"
+          >
+            {saving ? 'Saving...' : <><Save className="w-4 h-4" /> Save About Us</>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -378,7 +490,7 @@ export default function Settings() {
                 <h2 className="text-lg font-display font-semibold text-[#0B132B]">About Page Text</h2>
               </div>
               <div className="p-6 space-y-6">
-                <TextAreaField setting={aboutUs} label="About Us Description" desc={aboutUs?.description} id="aboutUs" />
+                <RichTextField setting={aboutUs} label="About Us Description" desc={aboutUs?.description} saving={saving === aboutUs?.key} onSave={handleUpdate} />
               </div>
             </div>
 
