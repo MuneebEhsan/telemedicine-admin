@@ -231,6 +231,14 @@ export default function Settings() {
   const [saving, setSaving] = useState<string | null>(null);
   const [areaInput, setAreaInput] = useState("");
 
+  // Prescription Options States
+  const [frequencies, setFrequencies] = useState<{ _id: string; name: string }[]>([]);
+  const [durations, setDurations] = useState<{ _id: string; name: string }[]>([]);
+  const [freqInput, setFreqInput] = useState("");
+  const [durInput, setDurInput] = useState("");
+  const [prescriptionLoading, setPrescriptionLoading] = useState(false);
+  const [prescriptionSubmitting, setPrescriptionSubmitting] = useState<"freq" | "dur" | null>(null);
+
   const loadSettings = async () => {
     try {
       setLoading(true);
@@ -245,7 +253,25 @@ export default function Settings() {
     }
   };
 
-  useEffect(() => { loadSettings(); }, []);
+  const loadPrescriptionOptions = async () => {
+    try {
+      setPrescriptionLoading(true);
+      const res = await adminApi.getAdminPrescriptionOptions();
+      if (res.success) {
+        setFrequencies(res.data.frequencies || []);
+        setDurations(res.data.durations || []);
+      }
+    } catch (err) {
+      console.error("Failed to load prescription options:", err);
+    } finally {
+      setPrescriptionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+    loadPrescriptionOptions();
+  }, []);
 
   const handleUpdate = async (key: string, value: any, description?: string) => {
     try {
@@ -256,6 +282,62 @@ export default function Settings() {
       alert(error.message || "Failed to update setting");
     } finally {
       setSaving(null);
+    }
+  };
+
+  const handleAddFrequency = async () => {
+    if (!freqInput.trim()) return;
+    try {
+      setPrescriptionSubmitting("freq");
+      const res = await adminApi.addGlobalFrequency(freqInput.trim());
+      if (res.success) {
+        setFrequencies(prev => [...prev, res.data.frequency].sort((a, b) => a.name.localeCompare(b.name)));
+        setFreqInput("");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to add frequency option");
+    } finally {
+      setPrescriptionSubmitting(null);
+    }
+  };
+
+  const handleDeleteFrequency = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this frequency option?")) return;
+    try {
+      const res = await adminApi.deleteGlobalFrequency(id);
+      if (res.success) {
+        setFrequencies(prev => prev.filter(f => f._id !== id));
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete frequency option");
+    }
+  };
+
+  const handleAddDuration = async () => {
+    if (!durInput.trim()) return;
+    try {
+      setPrescriptionSubmitting("dur");
+      const res = await adminApi.addGlobalDuration(durInput.trim());
+      if (res.success) {
+        setDurations(prev => [...prev, res.data.duration].sort((a, b) => a.name.localeCompare(b.name)));
+        setDurInput("");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to add duration option");
+    } finally {
+      setPrescriptionSubmitting(null);
+    }
+  };
+
+  const handleDeleteDuration = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this duration option?")) return;
+    try {
+      const res = await adminApi.deleteGlobalDuration(id);
+      if (res.success) {
+        setDurations(prev => prev.filter(d => d._id !== id));
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete duration option");
     }
   };
 
@@ -424,6 +506,108 @@ export default function Settings() {
                 <NumberField setting={consultationFee} label="Default Consultation Fee (₹)" desc={consultationFee?.description || "Fee charged for each consultation"} id="consultationFee" />
                 <NumberField setting={slotDuration} label="Slot Duration (Minutes)" desc={slotDuration?.description || "Duration of each appointment slot"} id="slotDuration" />
                 <NumberField setting={rxReviewHours} label="Prescription Review Hours" desc={rxReviewHours?.description || "Max hours for prescription review"} id="rxReviewHours" />
+              </div>
+            </div>
+
+            {/* Prescription Options (Frequencies & Durations) */}
+            <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-[#F8FAFC]">
+                <Clock className="w-5 h-5 text-[#0F3C3A]" />
+                <h2 className="text-lg font-display font-semibold text-[#0B132B]">Prescription Options</h2>
+              </div>
+              
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Medicine Frequencies */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">Global Medicine Frequencies</h3>
+                    <p className="text-xs text-slate-500">Manage prescription frequencies available globally to all doctors.</p>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <input 
+                      value={freqInput} 
+                      onChange={e => setFreqInput(e.target.value)} 
+                      placeholder="e.g. 1-0-1, Twice daily, SOS"
+                      onKeyDown={e => e.key === "Enter" && handleAddFrequency()}
+                      className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" 
+                    />
+                    <button 
+                      onClick={handleAddFrequency} 
+                      disabled={prescriptionSubmitting === "freq"}
+                      className="btn-primary px-5 text-sm"
+                    >
+                      {prescriptionSubmitting === "freq" ? "Adding..." : "Add"}
+                    </button>
+                  </div>
+
+                  {prescriptionLoading ? (
+                    <div className="text-xs text-slate-400 italic">Loading frequencies...</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
+                      {frequencies.map((freq) => (
+                        <span key={freq._id} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#14B8A6]/10 text-[#0F3C3A] rounded-full text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition-all group">
+                          {freq.name}
+                          <button 
+                            onClick={() => handleDeleteFrequency(freq._id)} 
+                            className="text-slate-400 group-hover:text-red-600 font-bold transition-colors ml-0.5"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {frequencies.length === 0 && (
+                        <span className="text-xs text-slate-400 italic">No frequencies configured.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Medicine Durations */}
+                <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-100 md:pl-8 pt-6 md:pt-0">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">Global Medicine Durations</h3>
+                    <p className="text-xs text-slate-500">Manage prescription durations available globally to all doctors.</p>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <input 
+                      value={durInput} 
+                      onChange={e => setDurInput(e.target.value)} 
+                      placeholder="e.g. 5 days, 1 month"
+                      onKeyDown={e => e.key === "Enter" && handleAddDuration()}
+                      className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all" 
+                    />
+                    <button 
+                      onClick={handleAddDuration} 
+                      disabled={prescriptionSubmitting === "dur"}
+                      className="btn-primary px-5 text-sm"
+                    >
+                      {prescriptionSubmitting === "dur" ? "Adding..." : "Add"}
+                    </button>
+                  </div>
+
+                  {prescriptionLoading ? (
+                    <div className="text-xs text-slate-400 italic">Loading durations...</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-1">
+                      {durations.map((dur) => (
+                        <span key={dur._id} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition-all group">
+                          {dur.name}
+                          <button 
+                            onClick={() => handleDeleteDuration(dur._id)} 
+                            className="text-slate-400 group-hover:text-red-600 font-bold transition-colors ml-0.5"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {durations.length === 0 && (
+                        <span className="text-xs text-slate-400 italic">No durations configured.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

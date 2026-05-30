@@ -175,6 +175,13 @@ export const deleteReview = (id: string) => fetchWithAuth(`/admin/reviews/${id}`
 export const addAdminReview = (data: { productId: string; rating: number; title?: string; body: string; reviewerName?: string }) =>
   fetchWithAuth("/admin/reviews", { method: "POST", body: JSON.stringify(data) });
 
+/** Prescription Options APIs */
+export const getAdminPrescriptionOptions = () => fetchWithAuth("/admin/prescription-options");
+export const addGlobalFrequency = (name: string) => fetchWithAuth("/admin/prescription-options/frequencies", { method: "POST", body: JSON.stringify({ name }) });
+export const deleteGlobalFrequency = (id: string) => fetchWithAuth(`/admin/prescription-options/frequencies/${id}`, { method: "DELETE" });
+export const addGlobalDuration = (name: string) => fetchWithAuth("/admin/prescription-options/durations", { method: "POST", body: JSON.stringify({ name }) });
+export const deleteGlobalDuration = (id: string) => fetchWithAuth(`/admin/prescription-options/durations/${id}`, { method: "DELETE" });
+
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
@@ -195,5 +202,6 @@ export const adminApi = {
   getPrescriptionOrders, getPrescriptionOrder, reviewPrescription,
   getCoupons, getCouponById, createCoupon, updateCoupon, deleteCoupon,
   getAdminReviews, updateReviewStatus, deleteReview, addAdminReview,
+  getAdminPrescriptionOptions, addGlobalFrequency, deleteGlobalFrequency, addGlobalDuration, deleteGlobalDuration,
 };
 
