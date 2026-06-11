@@ -225,7 +225,7 @@ export default function Profile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Current Password</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Current Password <span className="required-star">*</span></label>
                 <input
                   type="password"
                   required
@@ -236,7 +236,7 @@ export default function Profile() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">New Password</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">New Password <span className="required-star">*</span></label>
                 <input
                   type="password"
                   required

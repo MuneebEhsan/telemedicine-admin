@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -20,6 +23,8 @@ import { adminApi } from "@/lib/api";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 
 export default function PrescriptionOrderDetail() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
@@ -51,7 +56,7 @@ export default function PrescriptionOrderDetail() {
   const handleReview = async () => {
     if (!reviewModal) return;
     if (reviewModal === "reject" && !reviewNote.trim()) {
-      alert("Please provide a reason for rejection.");
+      showError("Please provide a reason for rejection.");
       return;
     }
     try {
@@ -61,7 +66,7 @@ export default function PrescriptionOrderDetail() {
       setReviewNote("");
       loadOrder();
     } catch (e: any) {
-      alert(e.message || "Failed to review prescription");
+      showError(getErrorMessage(e));
     } finally {
       setReviewLoading(false);
     }
@@ -74,7 +79,7 @@ export default function PrescriptionOrderDetail() {
       await adminApi.updateOrderStatus(order._id, newStatus);
       loadOrder();
     } catch (e: any) {
-      alert(e.message || "Failed to update status");
+      showError(getErrorMessage(e));
     } finally {
       setStatusLoading(false);
     }

@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Upload, X } from "lucide-react";
@@ -13,6 +16,8 @@ const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 import 'react-quill-new/dist/quill.snow.css';
 
 export default function CreateProduct() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -91,7 +96,7 @@ export default function CreateProduct() {
     const file = e.target.files[0];
     
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image exceeds the 5MB limit. Please upload a smaller image.");
+      showError("Image exceeds the 5MB limit. Please upload a smaller image.");
       e.target.value = "";
       return;
     }
@@ -108,7 +113,7 @@ export default function CreateProduct() {
         }));
       }
     } catch (error) {
-      alert("Failed to upload image");
+      showError("Failed to upload image");
     } finally {
       setUploadingImage(false);
     }
@@ -120,7 +125,7 @@ export default function CreateProduct() {
     
     // 20MB limit for video
     if (file.size > 20 * 1024 * 1024) {
-      alert("Video exceeds the 20MB limit. Please upload a smaller file.");
+      showError("Video exceeds the 20MB limit. Please upload a smaller file.");
       e.target.value = "";
       return;
     }
@@ -132,7 +137,7 @@ export default function CreateProduct() {
         setFormData(prev => ({ ...prev, videoUrl: response.data.url }));
       }
     } catch (error) {
-      alert("Failed to upload video");
+      showError("Failed to upload video");
     } finally {
       setUploadingVideo(false);
     }
@@ -154,7 +159,7 @@ export default function CreateProduct() {
   const handleArrayImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'howItWorks' | 'howToUse', index: number) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    if (file.size > 5 * 1024 * 1024) return alert("Image exceeds 5MB limit.");
+    if (file.size > 5 * 1024 * 1024) { showError("Image exceeds 5MB limit."); return; }
 
     try {
       const response = await adminApi.uploadAdminImage(file, "products");
@@ -166,14 +171,14 @@ export default function CreateProduct() {
         });
       }
     } catch (error) {
-      alert("Failed to upload image");
+      showError("Failed to upload image");
     }
   };
 
   const handleArrayVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'howItWorks' | 'howToUse', index: number) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    if (file.size > 20 * 1024 * 1024) return alert("Video exceeds 20MB limit.");
+    if (file.size > 20 * 1024 * 1024) { showError("Video exceeds 20MB limit."); return; }
 
     try {
       const response = await adminApi.uploadAdminVideo(file, "products");
@@ -185,14 +190,14 @@ export default function CreateProduct() {
         });
       }
     } catch (error) {
-      alert("Failed to upload video");
+      showError("Failed to upload video");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.category) {
-      return alert("Name and Category are required");
+      { showError("Name and Category are required"); return; }
     }
 
     setLoading(true);
@@ -245,7 +250,7 @@ export default function CreateProduct() {
       router.push('/products');
       router.refresh(); // Refresh the list
     } catch (error: any) {
-      alert(error.message || "Failed to create product");
+      showError(getErrorMessage(error));
       setLoading(false);
     }
   };

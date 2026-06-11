@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { ToastProvider } from "@/lib/toast-context";
 
 // Pages accessible by pharmacy role
 const pharmacyAllowedPaths = ["/", "/prescriptions", "/pharmacy-orders"];
@@ -35,7 +36,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }, [pathname, isLoginPage, router]);
 
   if (isLoginPage) {
-    return <main className="w-full flex-1 overflow-y-auto">{children}</main>;
+    return <main className="w-full flex-1 overflow-y-auto"><ToastProvider>{children}</ToastProvider></main>;
   }
 
   if (!checked) {
@@ -47,11 +48,11 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <>
+    <ToastProvider>
       <Sidebar />
       <main className="flex-1 overflow-x-hidden overflow-y-auto w-full">
         {children}
       </main>
-    </>
+    </ToastProvider>
   );
 }

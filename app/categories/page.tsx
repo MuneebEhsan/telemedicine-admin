@@ -1,11 +1,16 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, FolderTree } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 
 export default function Categories() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,7 +57,7 @@ export default function Categories() {
   };
 
   const handleCreateOrUpdate = async () => {
-    if (!newCategory.name) return alert("Name is required");
+    if (!newCategory.name) { showError("Name is required"); return; }
     setCreating(true);
     try {
       if (editingId) {
@@ -65,7 +70,7 @@ export default function Categories() {
       setEditingId(null);
       loadCategories();
     } catch (error: any) {
-      alert(error.message || `Failed to ${editingId ? 'update' : 'create'} category`);
+      showError(getErrorMessage(error));
     } finally {
       setCreating(false);
     }
@@ -77,7 +82,7 @@ export default function Categories() {
     
     // Check file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image exceeds the 5MB limit. Please upload a smaller image.");
+      showError("Image exceeds the 5MB limit. Please upload a smaller image.");
       e.target.value = ""; // Clear the input
       return;
     }
@@ -89,7 +94,7 @@ export default function Categories() {
          setNewCategory({...newCategory, image: response.data.url});
       }
     } catch (error) {
-      alert("Failed to upload image");
+      showError("Failed to upload image");
     } finally {
       setUploadingImage(false);
     }
@@ -106,7 +111,7 @@ export default function Categories() {
       setDeleteModal({ isOpen: false, id: "", name: "" });
       loadCategories();
     } catch (error: any) {
-      alert(error.message || "Failed to delete category");
+      showError(getErrorMessage(error));
     }
   };
 

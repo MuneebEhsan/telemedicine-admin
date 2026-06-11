@@ -1,11 +1,16 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, FolderTree } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 
 export default function SubCategories() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,8 +65,8 @@ export default function SubCategories() {
   };
 
   const handleCreateOrUpdate = async () => {
-    if (!newSubCategory.name) return alert("Name is required");
-    if (!newSubCategory.parentCategory) return alert("Parent Category is required");
+    if (!newSubCategory.name) { showError("Name is required"); return; }
+    if (!newSubCategory.parentCategory) { showError("Parent Category is required"); return; }
     setCreating(true);
     try {
       if (editingId) {
@@ -74,7 +79,7 @@ export default function SubCategories() {
       setEditingId(null);
       loadData();
     } catch (error: any) {
-      alert(error.message || `Failed to ${editingId ? 'update' : 'create'} subcategory`);
+      showError(getErrorMessage(error));
     } finally {
       setCreating(false);
     }
@@ -86,7 +91,7 @@ export default function SubCategories() {
     
     // Check file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image exceeds the 5MB limit. Please upload a smaller image.");
+      showError("Image exceeds the 5MB limit. Please upload a smaller image.");
       e.target.value = ""; // Clear the input
       return;
     }
@@ -98,7 +103,7 @@ export default function SubCategories() {
          setNewSubCategory({...newSubCategory, image: response.data.url});
       }
     } catch (error) {
-      alert("Failed to upload image");
+      showError("Failed to upload image");
     } finally {
       setUploadingImage(false);
     }
@@ -115,7 +120,7 @@ export default function SubCategories() {
       setDeleteModal({ isOpen: false, id: "", name: "" });
       loadData();
     } catch (error: any) {
-      alert(error.message || "Failed to delete subcategory");
+      showError(getErrorMessage(error));
     }
   };
 

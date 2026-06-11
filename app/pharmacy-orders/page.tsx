@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState, useMemo } from "react";
 import {
   Search,
@@ -22,6 +25,8 @@ import Link from "next/link";
 type TabFilter = "all" | "confirmed" | "packed" | "dispatched" | "delivered";
 
 export default function PharmacyOrders() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [regularOrders, setRegularOrders] = useState<any[]>([]);
   const [rxOrders, setRxOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,7 +126,7 @@ export default function PharmacyOrders() {
       await adminApi.updateOrderStatus(id, newStatus);
       loadOrders();
     } catch (e: any) {
-      alert(e.message || "Failed to update order status");
+      showError(getErrorMessage(e));
     } finally {
       setStatusLoading(null);
     }

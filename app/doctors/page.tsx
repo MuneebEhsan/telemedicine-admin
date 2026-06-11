@@ -1,11 +1,16 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useState, useEffect } from "react";
 import { adminApi } from "@/lib/api";
 import Header from "@/components/layout/Header";
 import { X, User as UserIcon, GraduationCap, Briefcase, FileText, Search, RefreshCw, Video } from "lucide-react";
 
 export default function ApprovedDoctorsPage() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -21,7 +26,7 @@ export default function ApprovedDoctorsPage() {
       const res = await adminApi.getApprovedDoctors();
       setDoctors(res.data.doctors || []);
     } catch (error: any) {
-      alert(error.message || "Failed to fetch approved doctors.");
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }

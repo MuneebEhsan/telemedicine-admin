@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Package } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -8,6 +11,8 @@ import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 
 export default function Products() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -48,7 +53,7 @@ export default function Products() {
       setDeleteModal({ isOpen: false, id: "", name: "" });
       loadProducts();
     } catch (error: any) {
-      alert(error.message || "Failed to delete product");
+      showError(getErrorMessage(error));
     }
   };
 

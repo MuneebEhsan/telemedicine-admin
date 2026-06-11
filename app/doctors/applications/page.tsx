@@ -1,11 +1,16 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useState, useEffect } from "react";
 import { adminApi } from "@/lib/api";
 import Header from "@/components/layout/Header";
 import { X, CheckCircle, AlertCircle, FileText, User as UserIcon, Calendar, GraduationCap, Briefcase, DollarSign, Search, RefreshCw } from "lucide-react";
 
 export default function PendingDoctorsPage() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [doctors, setDoctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -28,7 +33,7 @@ export default function PendingDoctorsPage() {
       const res = await adminApi.getPendingDoctors(query);
       setDoctors(res.data.doctors || []);
     } catch (error: any) {
-      alert(error.message || "Failed to fetch pending doctors.");
+      showError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -45,11 +50,11 @@ export default function PendingDoctorsPage() {
     try {
       setActionLoading(true);
       await adminApi.approveDoctor(selectedDoctor._id);
-      alert("Doctor approved successfully!");
+      showSuccess("Doctor approved successfully!");
       setSelectedDoctor(null);
       fetchPendingDoctors();
     } catch (error: any) {
-      alert(error.message || "Failed to approve doctor.");
+      showError(getErrorMessage(error));
     } finally {
       setActionLoading(false);
     }
@@ -57,7 +62,7 @@ export default function PendingDoctorsPage() {
 
   const handleReject = async () => {
     if (!rejectionReason) {
-      alert("Please provide a reason for rejection.");
+      showError("Please provide a reason for rejection.");
       return;
     }
 
@@ -66,11 +71,11 @@ export default function PendingDoctorsPage() {
     try {
       setActionLoading(true);
       await adminApi.rejectDoctor(selectedDoctor._id, rejectionReason);
-      alert("Application rejected.");
+      showError("Application rejected.");
       setSelectedDoctor(null);
       fetchPendingDoctors();
     } catch (error: any) {
-      alert(error.message || "Failed to reject application.");
+      showError(getErrorMessage(error));
     } finally {
       setActionLoading(false);
     }

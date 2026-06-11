@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Shield, Ban, CheckCircle, Trash2, Edit, UserCog, Plus, Check } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -21,6 +24,8 @@ const MODULES = [
 ];
 
 export default function StaffManagement() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -126,13 +131,13 @@ export default function StaffManagement() {
       await adminApi.deleteStaff(userId);
       loadStaff();
     } catch (e: any) {
-      alert(e.message || "Failed to delete staff.");
+      showError(getErrorMessage(e));
     }
   };
 
   const confirmBan = async () => {
     if (!banModal.reason.trim()) {
-      alert("Please enter a reason for the ban.");
+      showError("Please enter a reason for the ban.");
       return;
     }
     try {
@@ -141,7 +146,7 @@ export default function StaffManagement() {
       loadStaff();
     } catch (error) {
       console.error(error);
-      alert("Ban failed.");
+      showError("Ban failed.");
     }
   };
 
@@ -152,7 +157,7 @@ export default function StaffManagement() {
       loadStaff();
     } catch (error) {
       console.error(error);
-      alert("Unban failed.");
+      showError("Unban failed.");
     }
   };
 

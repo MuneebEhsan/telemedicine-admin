@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Save, Settings2, Truck, CreditCard, Stethoscope, Clock, MapPin, Phone, Mail, Globe, HelpCircle, FileText } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -130,6 +133,7 @@ function RichTextField({
   saving: boolean;
   onSave: (key: string, value: string, description?: string) => void;
 }) {
+  const { showError } = useToast();
   const [value, setValue] = useState("");
 
   useEffect(() => {
@@ -163,7 +167,7 @@ function RichTextField({
             }
           } catch (error) {
             console.error("Failed to upload image inside Quill:", error);
-            alert("Failed to upload image");
+            showError("Failed to upload image");
           }
         }
       };
@@ -226,6 +230,8 @@ function RichTextField({
 }
 
 export default function Settings() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [settings, setSettings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -279,7 +285,7 @@ export default function Settings() {
       await adminApi.updateSetting(key, value, description);
       await loadSettings();
     } catch (error: any) {
-      alert(error.message || "Failed to update setting");
+      showError(getErrorMessage(error));
     } finally {
       setSaving(null);
     }
@@ -295,7 +301,7 @@ export default function Settings() {
         setFreqInput("");
       }
     } catch (err: any) {
-      alert(err.message || "Failed to add frequency option");
+      showError(getErrorMessage(err));
     } finally {
       setPrescriptionSubmitting(null);
     }
@@ -309,7 +315,7 @@ export default function Settings() {
         setFrequencies(prev => prev.filter(f => f._id !== id));
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete frequency option");
+      showError(getErrorMessage(err));
     }
   };
 
@@ -323,7 +329,7 @@ export default function Settings() {
         setDurInput("");
       }
     } catch (err: any) {
-      alert(err.message || "Failed to add duration option");
+      showError(getErrorMessage(err));
     } finally {
       setPrescriptionSubmitting(null);
     }
@@ -337,7 +343,7 @@ export default function Settings() {
         setDurations(prev => prev.filter(d => d._id !== id));
       }
     } catch (err: any) {
-      alert(err.message || "Failed to delete duration option");
+      showError(getErrorMessage(err));
     }
   };
 

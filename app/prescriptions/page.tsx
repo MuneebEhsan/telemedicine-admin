@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Search, FileCheck, CheckCircle, XCircle, Clock, Eye, ExternalLink } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -8,6 +11,8 @@ import { formatDate, formatPrice, cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function PrescriptionReviews() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -46,7 +51,7 @@ export default function PrescriptionReviews() {
   const handleReview = async () => {
     if (!reviewModal) return;
     if (reviewModal.action === "reject" && !reviewNote.trim()) {
-      alert("Please provide a reason for rejection.");
+      showError("Please provide a reason for rejection.");
       return;
     }
     try {
@@ -56,7 +61,7 @@ export default function PrescriptionReviews() {
       setReviewNote("");
       loadOrders();
     } catch (e: any) {
-      alert(e.message || "Failed to review prescription");
+      showError(getErrorMessage(e));
     } finally {
       setReviewLoading(false);
     }

@@ -85,7 +85,7 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number <span className="required-star">*</span></label>
             <input
               type="tel"
               placeholder="+919876543210"
@@ -97,7 +97,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password <span className="required-star">*</span></label>
             <input
               type="password"
               required

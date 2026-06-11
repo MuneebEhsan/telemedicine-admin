@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useRef, useState } from "react";
 import { Star, Trash2, CheckCircle, XCircle, Plus, Search, X, Package } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -12,6 +15,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ReviewsPage() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
@@ -119,7 +124,7 @@ export default function ReviewsPage() {
       await adminApi.updateReviewStatus(id, action);
       loadReviews();
     } catch (err: any) {
-      alert(err.message || "Action failed");
+      showError(getErrorMessage(err));
     } finally {
       setActionLoading(null);
     }
@@ -132,7 +137,7 @@ export default function ReviewsPage() {
       setDeleteId(null);
       loadReviews();
     } catch (err: any) {
-      alert(err.message || "Delete failed");
+      showError(getErrorMessage(err));
     }
   };
 

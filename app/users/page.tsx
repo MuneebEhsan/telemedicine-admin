@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Shield, Ban, CheckCircle, Trash2, Eye, Pill, Plus } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -8,6 +11,8 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 export default function Users() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -69,13 +74,13 @@ export default function Users() {
       loadUsers();
     } catch (error) {
       console.error(error);
-      alert("Unban failed.");
+      showError("Unban failed.");
     }
   };
 
   const confirmBan = async () => {
     if (!banModal.reason.trim()) {
-      alert("Please enter a reason for the ban.");
+      showError("Please enter a reason for the ban.");
       return;
     }
     try {
@@ -84,7 +89,7 @@ export default function Users() {
       loadUsers();
     } catch (error) {
       console.error(error);
-      alert("Ban failed.");
+      showError("Ban failed.");
     }
   };
 
@@ -94,7 +99,7 @@ export default function Users() {
       await adminApi.deleteUser(userId);
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to delete user.");
+      showError(getErrorMessage(e));
     }
   };
 
@@ -105,7 +110,7 @@ export default function Users() {
       await adminApi.updateUserRole(userId, "pharmacy");
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to update role.");
+      showError(getErrorMessage(e));
     }
   };
 
@@ -115,7 +120,7 @@ export default function Users() {
       await adminApi.updateUserRole(userId, "patient");
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to update role.");
+      showError(getErrorMessage(e));
     }
   };
 

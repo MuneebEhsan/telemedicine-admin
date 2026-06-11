@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Shield, Ban, CheckCircle, Trash2, Eye, Pill, Plus } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -8,6 +11,8 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 export default function PharmacyUsers() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -76,13 +81,13 @@ export default function PharmacyUsers() {
       loadUsers();
     } catch (error) {
       console.error(error);
-      alert("Unban failed.");
+      showError("Unban failed.");
     }
   };
 
   const confirmBan = async () => {
     if (!banModal.reason.trim()) {
-      alert("Please enter a reason for the ban.");
+      showError("Please enter a reason for the ban.");
       return;
     }
     try {
@@ -91,7 +96,7 @@ export default function PharmacyUsers() {
       loadUsers();
     } catch (error) {
       console.error(error);
-      alert("Ban failed.");
+      showError("Ban failed.");
     }
   };
 
@@ -101,13 +106,13 @@ export default function PharmacyUsers() {
       await adminApi.deleteUser(userId);
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to delete user.");
+      showError(getErrorMessage(e));
     }
   };
 
   const handleCreatePharmacy = async () => {
     if (!pharmacyForm.name.trim() || !pharmacyForm.phone.trim() || !pharmacyForm.password.trim()) {
-      alert("Name, phone, and password are required.");
+      showError("Name, phone, and password are required.");
       return;
     }
     try {
@@ -122,7 +127,7 @@ export default function PharmacyUsers() {
       setPharmacyForm({ name: "", phone: "", password: "", email: "" });
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to create pharmacy user.");
+      showError(getErrorMessage(e));
     } finally {
       setPharmacyLoading(false);
     }
@@ -134,7 +139,7 @@ export default function PharmacyUsers() {
       await adminApi.updateUserRole(userId, "pharmacy");
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to update role.");
+      showError(getErrorMessage(e));
     }
   };
 
@@ -144,7 +149,7 @@ export default function PharmacyUsers() {
       await adminApi.updateUserRole(userId, "patient");
       loadUsers();
     } catch (e: any) {
-      alert(e.message || "Failed to update role.");
+      showError(getErrorMessage(e));
     }
   };
 

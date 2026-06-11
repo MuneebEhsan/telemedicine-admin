@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, Eye, Ticket, X, Search, ToggleLeft, ToggleRight } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -32,6 +35,8 @@ const emptyForm = {
 };
 
 export default function CouponsPage() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -74,23 +79,23 @@ export default function CouponsPage() {
       if (editingId) { await adminApi.updateCoupon(editingId, form); }
       else { await adminApi.createCoupon(form); }
       setShowModal(false); load();
-    } catch (e: any) { alert(e.message); } finally { setSaving(false); }
+    } catch (e: any) { showError(getErrorMessage(e)); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this coupon?")) return;
-    try { await adminApi.deleteCoupon(id); load(); } catch (e: any) { alert(e.message); }
+    try { await adminApi.deleteCoupon(id); load(); } catch (e: any) { showError(getErrorMessage(e)); }
   };
 
   const handleToggle = async (c: Coupon) => {
-    try { await adminApi.updateCoupon(c._id, { isActive: !c.isActive }); load(); } catch (e: any) { alert(e.message); }
+    try { await adminApi.updateCoupon(c._id, { isActive: !c.isActive }); load(); } catch (e: any) { showError(getErrorMessage(e)); }
   };
 
   const viewDetail = async (id: string) => {
     try {
       const data = await adminApi.getCouponById(id);
       setShowDetail(data.data?.coupon || data.data);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { showError(getErrorMessage(e)); }
   };
 
   const toggleApplicable = (val: string) => {

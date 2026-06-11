@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Search, Info, CheckCircle, PackageSearch, Truck, CheckCircle2, XCircle } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -8,6 +11,8 @@ import { formatDate, formatPrice, cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function Orders() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -43,7 +48,7 @@ export default function Orders() {
          await adminApi.updateOrderStatus(id, newStatus);
          loadOrders();
       } catch (e: any) {
-         alert(e.message || "Failed to update order status");
+         showError(getErrorMessage(e));
       }
     }
   }

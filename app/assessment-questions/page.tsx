@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, GripVertical, ClipboardCheck, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import Header from "@/components/layout/Header";
@@ -47,6 +50,8 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function AssessmentQuestionsPage() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -94,7 +99,7 @@ export default function AssessmentQuestionsPage() {
   };
 
   const handleSave = async () => {
-    if (!form.field || !form.title) return alert("Field name & title are required");
+    if (!form.field || !form.title) { showError("Field name & title are required"); return; }
     setSaving(true);
     try {
       if (editingId) {
@@ -105,7 +110,7 @@ export default function AssessmentQuestionsPage() {
       setModalOpen(false);
       load();
     } catch (e: any) {
-      alert(e.message || "Failed to save");
+      showError(getErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -115,10 +120,10 @@ export default function AssessmentQuestionsPage() {
     setSeeding(true);
     try {
       const res = await adminApi.seedAssessmentQuestions();
-      alert(res.message || "Seed complete");
+      showSuccess(res.message || "Seed complete");
       load();
     } catch (e: any) {
-      alert(e.message);
+      showError(getErrorMessage(e));
     } finally {
       setSeeding(false);
     }
@@ -130,7 +135,7 @@ export default function AssessmentQuestionsPage() {
       setDeleteModal({ open: false, id: "", title: "" });
       load();
     } catch (e: any) {
-      alert(e.message);
+      showError(getErrorMessage(e));
     }
   };
 

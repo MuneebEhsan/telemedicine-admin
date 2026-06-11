@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useToast } from "@/lib/toast-context";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Package, Clock, MapPin, CreditCard, ChevronRight } from "lucide-react";
@@ -8,6 +11,8 @@ import { adminApi } from "@/lib/api";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 
 export default function AdminOrderDetail() {
+  const { showSuccess, showError, showWarning } = useToast();
+
   const { id } = useParams() as { id: string };
   const router = useRouter();
 
@@ -38,7 +43,7 @@ export default function AdminOrderDetail() {
         await adminApi.updateOrderStatus(id, newStatus);
         loadOrder();
       } catch (e: any) {
-        alert(e.message || "Failed to update order status");
+        showError(getErrorMessage(e));
       }
     }
   };
