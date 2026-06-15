@@ -143,6 +143,30 @@ export default function Users() {
     );
   };
 
+  // The Status column shows the account status for most users, but for doctors it
+  // shows their application/approval status (Pending/Approved/Rejected/Incomplete)
+  // — a new doctor's account is "active" but their application is still pending.
+  const getStatusBadge = (user: any): { label: string; cls: string } => {
+    if (user.status === "banned") return { label: "Banned", cls: "bg-red-100 text-red-800" };
+    if (user.status === "suspended") return { label: "Suspended", cls: "bg-red-100 text-red-800" };
+
+    if (user.role === "doctor") {
+      const appStatus =
+        user.doctorProfile?.applicationStatus ??
+        (user.doctorProfile?.isApproved ? "approved" : "pending");
+      const map: Record<string, { label: string; cls: string }> = {
+        approved: { label: "Approved", cls: "bg-green-100 text-green-800" },
+        pending: { label: "Pending", cls: "bg-yellow-100 text-yellow-800" },
+        rejected: { label: "Rejected", cls: "bg-red-100 text-red-800" },
+        not_filled: { label: "Incomplete", cls: "bg-slate-100 text-slate-600" },
+      };
+      return map[appStatus] || map.pending;
+    }
+
+    if (user.status === "active") return { label: "Active", cls: "bg-green-100 text-green-800" };
+    return { label: user.status, cls: "bg-yellow-100 text-yellow-800" };
+  };
+
   const limit = 20;
   const totalPages = Math.ceil(total / limit) || 1;
 
@@ -250,12 +274,14 @@ export default function Users() {
                         {getRoleBadge(user.role)}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize
-                          ${user.status === "active" ? "bg-green-100 text-green-800" :
-                            user.status === "banned" ? "bg-red-100 text-red-800" :
-                            "bg-yellow-100 text-yellow-800"}`}>
-                          {user.status}
-                        </span>
+                        {(() => {
+                          const badge = getStatusBadge(user);
+                          return (
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatDate(user.createdAt)}</td>
                       <td className="px-6 py-4">
