@@ -73,7 +73,7 @@ export default function Login() {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#14B8A6] to-[#0F3C3A] flex items-center justify-center text-white mb-4 shadow-sm">
             <Lock className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-display font-semibold text-[#0B132B]">Duraup Admin</h2>
+          <h2 className="text-2xl font-display font-semibold text-[#0B132B]">Jexmate Admin</h2>
           <p className="text-sm text-slate-500 mt-1">Sign in to manage the platform</p>
         </div>
 

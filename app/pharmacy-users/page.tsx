@@ -384,7 +384,7 @@ export default function PharmacyUsers() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Name *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Duraup Pharmacy"
+                  placeholder="e.g. Jexmate Pharmacy"
                   value={pharmacyForm.name}
                   onChange={(e) => setPharmacyForm((p) => ({ ...p, name: e.target.value }))}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
@@ -414,7 +414,7 @@ export default function PharmacyUsers() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email (optional)</label>
                 <input
                   type="email"
-                  placeholder="pharmacy@duraup.com"
+                  placeholder="pharmacy@jexmate.com"
                   value={pharmacyForm.email}
                   onChange={(e) => setPharmacyForm((p) => ({ ...p, email: e.target.value }))}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"

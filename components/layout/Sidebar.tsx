@@ -138,7 +138,7 @@ export default function Sidebar() {
             {isPharmacy ? "P" : "D"}
           </div>
           <span className="font-display font-semibold text-xl tracking-tight text-[#072A28]">
-            Duraup{" "}
+            Jexmate{" "}
             <span className={isPharmacy ? "text-[#8B5CF6]" : userRole === "staff" ? "text-blue-500" : "text-[#D4AF37]"}>
               {isPharmacy ? "Pharmacy" : userRole === "staff" ? "Staff" : "Admin"}
             </span>

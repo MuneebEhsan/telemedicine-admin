@@ -14,8 +14,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Duraup Admin Dashboard",
-  description: "Secure management interface for Duraup platform",
+  title: "Jexmate Admin Dashboard",
+  description: "Secure management interface for Jexmate platform",
 };
 
 export default function RootLayout({
