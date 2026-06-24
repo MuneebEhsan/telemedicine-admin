@@ -182,6 +182,12 @@ export const deleteGlobalFrequency = (id: string) => fetchWithAuth(`/admin/presc
 export const addGlobalDuration = (name: string) => fetchWithAuth("/admin/prescription-options/durations", { method: "POST", body: JSON.stringify({ name }) });
 export const deleteGlobalDuration = (id: string) => fetchWithAuth(`/admin/prescription-options/durations/${id}`, { method: "DELETE" });
 
+/** Blog APIs */
+export const getAdminBlogs = () => fetchWithAuth("/admin/blogs");
+export const createBlog = (data: any) => fetchWithAuth("/admin/blogs", { method: "POST", body: JSON.stringify(data) });
+export const updateBlog = (id: string, data: any) => fetchWithAuth(`/admin/blogs/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const deleteBlog = (id: string) => fetchWithAuth(`/admin/blogs/${id}`, { method: "DELETE" });
+
 export const adminApi = {
   getAdminDashboard,
   getAdminUsers, getAdminUser, getUserDetails, banUser, unbanUser, deleteUser,
@@ -203,5 +209,6 @@ export const adminApi = {
   getCoupons, getCouponById, createCoupon, updateCoupon, deleteCoupon,
   getAdminReviews, updateReviewStatus, deleteReview, addAdminReview,
   getAdminPrescriptionOptions, addGlobalFrequency, deleteGlobalFrequency, addGlobalDuration, deleteGlobalDuration,
+  getAdminBlogs, createBlog, updateBlog, deleteBlog,
 };
 

@@ -144,3 +144,61 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   margin-left: 2px;
 }
+
+/* === Quill Editor Premium Overrides === */
+.quill-editor-wrapper {
+  display: block;
+  width: 100%;
+}
+.quill-editor-wrapper .ql-toolbar.ql-snow {
+  border: 1px solid var(--color-border);
+  border-top-left-radius: var(--radius-sm);
+  border-top-right-radius: var(--radius-sm);
+  background-color: var(--color-surface-alt);
+  padding: 8px 12px;
+}
+.quill-editor-wrapper .ql-container.ql-snow {
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  background-color: var(--color-surface);
+}
+.quill-editor-wrapper .ql-editor {
+  min-height: 220px;
+  max-height: 400px;
+  overflow-y: auto;
+  color: var(--color-ink);
+  line-height: 1.6;
+}
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+  color: var(--color-muted-light);
+  font-style: normal;
+  left: 15px;
+}
+.quill-editor-wrapper .ql-snow .ql-stroke {
+  stroke: var(--color-muted);
+}
+.quill-editor-wrapper .ql-snow .ql-fill {
+  fill: var(--color-muted);
+}
+.quill-editor-wrapper .ql-snow .ql-picker {
+  color: var(--color-muted);
+}
+.quill-editor-wrapper .ql-snow.ql-toolbar button:hover,
+.quill-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
+.quill-editor-wrapper .ql-snow.ql-toolbar button.ql-active,
+.quill-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  color: var(--color-accent);
+  stroke: var(--color-accent);
+}
+.quill-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
+.quill-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: var(--color-accent);
+}
+.quill-editor-wrapper .ql-snow .ql-picker-label:hover,
+.quill-editor-wrapper .ql-snow .ql-picker-label.ql-active {
+  color: var(--color-accent);
+}
+

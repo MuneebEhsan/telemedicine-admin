@@ -20,6 +20,7 @@ import {
   Ticket,
   UserCircle,
   Star,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ const allNavItems: NavItem[] = [
   { name: "Subcategories", href: "/subcategories", icon: FolderTree, roles: ["admin", "staff"], moduleId: "products" },
   { name: "Orders", href: "/orders", icon: ClipboardList, roles: ["admin", "staff"], moduleId: "orders" },
   { name: "Coupons", href: "/coupons", icon: Ticket, roles: ["admin", "staff"], moduleId: "coupons" },
+  { name: "Blogs", href: "/blogs", icon: FileText, roles: ["admin", "staff"], moduleId: "products" },
   { name: "Assessment", href: "/assessment-questions", icon: ClipboardCheck, roles: ["admin"] },
   { name: "Reviews", href: "/reviews", icon: Star, roles: ["admin", "staff"], moduleId: "products" },
 
