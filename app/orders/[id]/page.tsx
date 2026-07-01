@@ -276,6 +276,12 @@ export default function AdminOrderDetail() {
                    <span className="text-slate-500">Delivery Charge</span>
                    <span className="font-medium text-slate-700">{formatPrice(order.deliveryCharge)}</span>
                  </div>
+                 {order.tax > 0 && (
+                   <div className="flex justify-between">
+                     <span className="text-slate-500">GST (5%)</span>
+                     <span className="font-medium text-slate-700">{formatPrice(order.tax)}</span>
+                   </div>
+                 )}
                  {order.discount > 0 && (
                    <div className="flex justify-between text-green-600">
                      <span>Discount</span>
