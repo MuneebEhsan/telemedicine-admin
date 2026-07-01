@@ -5,7 +5,7 @@ import { useToast } from "@/lib/toast-context";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Package, Clock, MapPin, CreditCard, ChevronRight } from "lucide-react";
+import { ArrowLeft, Package, Clock, MapPin, CreditCard, ChevronRight, FileText } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
@@ -181,6 +181,62 @@ export default function AdminOrderDetail() {
           {/* Right Column */}
           <div className="space-y-6">
             
+            {order.prescription && (
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden border-teal-200 bg-teal-50/10">
+                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-teal-50/20">
+                   <h3 className="font-semibold text-[#0B132B] flex items-center gap-2">
+                     <FileText className="w-5 h-5 text-teal-600" />
+                     Attached Prescription
+                   </h3>
+                   <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-100 text-teal-800">
+                     Verified Rx
+                   </span>
+                 </div>
+                 <div className="p-6 text-sm space-y-4">
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium">Prescribed By</p>
+                      <p className="font-bold text-[#0B132B]">
+                        Dr. {order.prescription.doctor?.doctorProfile?.professionalName || order.prescription.doctor?.name || "Assigned Doctor"}
+                      </p>
+                    </div>
+                    {order.prescription.diagnosis && (
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Diagnosis</p>
+                        <p className="text-slate-700 font-semibold">{order.prescription.diagnosis}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium mb-1.5">Prescribed Medicines</p>
+                      <ul className="space-y-1 bg-white border border-slate-100 p-3 rounded-lg text-xs text-slate-700">
+                        {order.prescription.medicines?.map((med: any, idx: number) => (
+                          <li key={idx} className="flex justify-between border-b border-slate-50 last:border-0 pb-1 last:pb-0">
+                            <span className="font-semibold text-slate-800">{med.name} ({med.dosage})</span>
+                            <span className="text-slate-500">{med.frequency} | {med.duration}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {order.prescription.notes && (
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Doctor's Notes</p>
+                        <p className="text-slate-600 text-xs italic">{order.prescription.notes}</p>
+                      </div>
+                    )}
+                    <div className="pt-2">
+                      <a 
+                        href={order.prescription.pdfUrl || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/consultations/${order.prescription.appointment}/prescription/${order.prescription._id}/pdf`}
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+                      >
+                        <FileText className="w-4 h-4" />
+                        View Prescription PDF
+                      </a>
+                    </div>
+                 </div>
+              </div>
+            )}
+
             {/* Customer & Address */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                <div className="px-6 py-4 border-b border-slate-100">
