@@ -5,7 +5,7 @@ import { useToast } from "@/lib/toast-context";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, FileText, CheckCircle } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import Link from "next/link";
@@ -231,17 +231,27 @@ export default function EditProduct() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.category) {
-      { showError("Name and Category are required"); return; }
+  const handleSubmit = async (e?: React.FormEvent, statusOverride?: string) => {
+    if (e) e.preventDefault();
+
+    const targetStatus = statusOverride || formData.status || 'active';
+
+    if (!formData.name?.trim()) {
+      showError("Product name is required");
+      return;
+    }
+
+    if (targetStatus === 'active' && !formData.category) {
+      showError("Category is required to publish product.");
+      return;
     }
 
     setLoading(true);
     try {
       // Process comma-separated strings to arrays
-      const payload = {
+      const payload: any = {
         ...formData,
+        status: targetStatus,
         healthConditions: formData.healthConditions.split(',').map(s => s.trim()).filter(Boolean),
         tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean),
         badge: formData.badge === 'none' ? '' : formData.badge,
@@ -250,40 +260,24 @@ export default function EditProduct() {
         packOffers: formData.packOffers
       };
       
-      // Some backends prefer subCategory to not be sent if it's empty
+      // Clean up empty references
+      if (!payload.category) {
+        delete payload.category;
+      }
       if (!payload.subCategory) {
-         delete (payload as any).subCategory;
+        delete payload.subCategory;
       }
 
       await adminApi.updateProduct(params.id as string, payload);
-      setFormData({
-        name: "",
-        description: "",
-        shortDescription: "",
-        price: 0,
-        mrp: 0,
-        images: [] as string[],
-        thumbnail: "",
-        category: "",
-        subCategory: "",
-        healthConditions: "",
-        tags: "",
-        badge: "none",
-        requiresPrescription: false,
-        stock: 0,
-        lowStockThreshold: 10,
-        manufacturer: "",
-        composition: "",
-        dosageForm: "",
-        packSize: "",
-        hsnCode: "",
-        gstPercent: 12,
-        status: "active",
-        howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
-        howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
-        videoUrl: "",
-        packOffers: []
-      });
+
+      if (targetStatus === 'draft') {
+        showSuccess("Draft updated successfully");
+      } else if (formData.status === 'draft' && targetStatus === 'active') {
+        showSuccess("Product published successfully");
+      } else {
+        showSuccess("Product updated successfully");
+      }
+
       router.push('/products');
       router.refresh(); // Refresh the list
     } catch (error: any) {
@@ -297,20 +291,58 @@ export default function EditProduct() {
       <Header title="Edit Product" />
       
       <div className="p-8 max-w-5xl mx-auto animate-fade-in pb-24">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={(e) => handleSubmit(e)} className="space-y-8">
            
           {/* Action Header */}
           <div className="flex items-center justify-between">
-             <Link href="/products" className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors">
-               <ArrowLeft className="w-4 h-4" /> Back to Products
-             </Link>
              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => router.push('/products')} className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+               <Link href="/products" className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors">
+                 <ArrowLeft className="w-4 h-4" /> Back to Products
+               </Link>
+               {formData.status === 'draft' && (
+                 <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full flex items-center gap-1.5">
+                   <FileText className="w-3.5 h-3.5" /> Draft (Unpublished)
+                 </span>
+               )}
+               {formData.status === 'active' && (
+                 <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full flex items-center gap-1.5">
+                   <CheckCircle className="w-3.5 h-3.5" /> Published (Live)
+                 </span>
+               )}
+             </div>
+             <div className="flex items-center gap-3">
+                <button type="button" onClick={() => router.push('/products')} className="px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
                    Cancel
                 </button>
-                <button type="submit" disabled={loading} className="btn-primary flex items-center gap-2 px-6 py-2.5">
-                   <Save className="w-4 h-4" /> {loading ? "Updating..." : "Update Product"}
-                </button>
+                {formData.status === 'draft' ? (
+                  <>
+                    <button 
+                      type="button" 
+                      disabled={loading} 
+                      onClick={() => handleSubmit(undefined, 'draft')}
+                      className="px-4 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm flex items-center gap-2"
+                    >
+                       <FileText className="w-4 h-4 text-amber-600" /> {loading ? "Saving..." : "Save Draft"}
+                    </button>
+                    <button 
+                      type="button" 
+                      disabled={loading} 
+                      onClick={() => handleSubmit(undefined, 'active')}
+                      className="btn-primary flex items-center gap-2 px-5 py-2.5"
+                    >
+                       <Save className="w-4 h-4" /> {loading ? "Publishing..." : "Publish Product"}
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    type="button" 
+                    disabled={loading} 
+                    onClick={() => handleSubmit(undefined)}
+                    className="btn-primary flex items-center gap-2 px-6 py-2.5"
+                  >
+                     <Save className="w-4 h-4" /> {loading ? "Updating..." : "Update Product"}
+                  </button>
+                )}
              </div>
           </div>
 
@@ -629,13 +661,29 @@ export default function EditProduct() {
                  )}
                  
                  <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                        <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all">
-                           <option value="active">Active</option>
-                           <option value="draft">Draft</option>
-                           <option value="archived">Archived</option>
-                        </select>
-                     </div>
+                    <div className="flex items-center justify-between mb-1">
+                       <label className="block text-sm font-medium text-slate-700">Product Status</label>
+                       {formData.status === 'draft' && (
+                          <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                             Draft
+                          </span>
+                       )}
+                       {formData.status === 'active' && (
+                          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                             Active
+                          </span>
+                       )}
+                    </div>
+                    <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all">
+                       <option value="active">Active (Published to Store)</option>
+                       <option value="draft">Draft (Hidden from Store)</option>
+                       <option value="out_of_stock">Out of Stock</option>
+                       <option value="discontinued">Discontinued</option>
+                    </select>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                       Draft products remain hidden from patients, storefront, and AI recommendations until published.
+                    </p>
+                 </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Badge</label>
                         <select name="badge" value={formData.badge} onChange={handleChange} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all">
@@ -794,6 +842,51 @@ export default function EditProduct() {
                   </div>
                </div>
 
+              </div>
+           </div>
+
+          {/* Bottom Action Footer */}
+          <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+             <Link href="/products" className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors">
+               <ArrowLeft className="w-4 h-4" /> Cancel & Return
+             </Link>
+             <div className="flex items-center gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => router.push('/products')} 
+                  className="px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                   Discard
+                </button>
+                {formData.status === 'draft' ? (
+                  <>
+                    <button 
+                      type="button" 
+                      disabled={loading} 
+                      onClick={() => handleSubmit(undefined, 'draft')}
+                      className="px-4 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm flex items-center gap-2"
+                    >
+                       <FileText className="w-4 h-4 text-amber-600" /> {loading ? "Saving..." : "Save Draft"}
+                    </button>
+                    <button 
+                      type="button" 
+                      disabled={loading} 
+                      onClick={() => handleSubmit(undefined, 'active')}
+                      className="btn-primary flex items-center gap-2 px-5 py-2.5"
+                    >
+                       <Save className="w-4 h-4" /> {loading ? "Publishing..." : "Publish Product"}
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    type="button" 
+                    disabled={loading} 
+                    onClick={() => handleSubmit(undefined)}
+                    className="btn-primary flex items-center gap-2 px-6 py-2.5"
+                  >
+                     <Save className="w-4 h-4" /> {loading ? "Updating..." : "Update Product"}
+                  </button>
+                )}
              </div>
           </div>
         </form>

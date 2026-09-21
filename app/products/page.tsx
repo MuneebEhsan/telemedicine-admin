@@ -17,6 +17,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, id: string, name: string}>({isOpen: false, id: "", name: ""});
@@ -25,6 +26,7 @@ export default function Products() {
     try {
       setLoading(true);
       let query = `page=${page}&search=${search}`;
+      if (statusFilter) query += `&status=${statusFilter}`;
       if (dateFrom) query += `&dateFrom=${dateFrom}`;
       if (dateTo) query += `&dateTo=${dateTo}`;
       const data = await adminApi.getAdminProducts(query);
@@ -40,7 +42,7 @@ export default function Products() {
 
   useEffect(() => {
     loadProducts();
-  }, [page, search, dateFrom, dateTo]);
+  }, [page, search, statusFilter, dateFrom, dateTo]);
 
   const promptDelete = (id: string, name: string) => {
     setDeleteModal({ isOpen: true, id, name });
@@ -68,18 +70,34 @@ export default function Products() {
       
       <div className="p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="glass-panel rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-            <input
-               type="text"
-               placeholder="Search products..."
-               className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm w-80 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all"
-               value={search}
-               onChange={(e) => {
-                 setSearch(e.target.value);
-                 setPage(1);
-               }}
-            />
-            <div className="flex gap-2">
+          <div className="px-6 py-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <input
+                 type="text"
+                 placeholder="Search products..."
+                 className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm w-72 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all"
+                 value={search}
+                 onChange={(e) => {
+                   setSearch(e.target.value);
+                   setPage(1);
+                 }}
+              />
+              <select
+                 value={statusFilter}
+                 onChange={(e) => {
+                   setStatusFilter(e.target.value);
+                   setPage(1);
+                 }}
+                 className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 outline-none focus:ring-2 focus:ring-[#14B8A6]/20 transition-all"
+              >
+                 <option value="">All Statuses</option>
+                 <option value="active">Active (Published)</option>
+                 <option value="draft">Draft (Unpublished)</option>
+                 <option value="out_of_stock">Out of Stock</option>
+                 <option value="discontinued">Discontinued</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
                <div className="flex items-center gap-2">
                  <input
                    type="date"
@@ -159,12 +177,13 @@ export default function Products() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize
-                          ${product.status === 'active' ? 'bg-green-100 text-green-800' : 
-                            product.status === 'out_of_stock' ? 'bg-red-100 text-red-800' :
-                            product.status === 'discontinued' ? 'bg-gray-100 text-gray-800' :
-                            'bg-yellow-100 text-yellow-800'}`}>
-                          {product.status || 'Active'}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize border
+                          ${product.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                            product.status === 'draft' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            product.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            product.status === 'discontinued' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                            'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                          {product.status === 'draft' ? 'Draft' : (product.status || 'Active')}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
