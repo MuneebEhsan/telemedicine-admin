@@ -3,9 +3,9 @@
 
 import { useToast } from "@/lib/toast-context";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Upload, X, FileText } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, FileText, Check, Loader2, AlertCircle } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import Link from "next/link";
@@ -25,6 +25,18 @@ export default function CreateProduct() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [activeEmojiPicker, setActiveEmojiPicker] = useState<number | null>(null);
+
+  // Auto-save state & refs
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'unsaved' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
+
+  const createdProductIdRef = useRef<string | null>(null);
+  const lastSavedPayloadRef = useRef<string>("");
+  const isAutoSavingRef = useRef(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialMountRef = useRef(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -48,7 +60,7 @@ export default function CreateProduct() {
     packSize: "",
     hsnCode: "",
     gstPercent: 12,
-    status: "active",
+    status: "draft",
     howItWorks: [] as { icon: string, title: string, description: string, image?: string, video?: string }[],
     howToUse: [] as { step: number, title: string, description: string, image?: string, video?: string }[],
     videoUrl: "",
@@ -194,8 +206,122 @@ export default function CreateProduct() {
     }
   };
 
+  // Initialize last saved payload snapshot on mount
+  useEffect(() => {
+    lastSavedPayloadRef.current = JSON.stringify(formData);
+    isInitialMountRef.current = false;
+  }, []);
+
+  const buildProductPayload = (targetStatus: string) => {
+    const payload: any = {
+      ...formData,
+      status: targetStatus,
+      healthConditions: typeof formData.healthConditions === 'string'
+        ? formData.healthConditions.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : formData.healthConditions,
+      tags: typeof formData.tags === 'string'
+        ? formData.tags.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : formData.tags,
+      badge: formData.badge === 'none' ? '' : formData.badge,
+      howItWorks: formData.howItWorks,
+      howToUse: formData.howToUse,
+      packOffers: formData.packOffers
+    };
+    if (!payload.category) delete payload.category;
+    if (!payload.subCategory) delete payload.subCategory;
+    return payload;
+  };
+
+  const performAutoSave = async () => {
+    // Only auto-save if product name has at least 2 characters
+    if (!formData.name?.trim() || formData.name.trim().length < 2) {
+      return;
+    }
+    if (uploadingImage || uploadingVideo || loading || isAutoSavingRef.current) {
+      return;
+    }
+
+    const price = Number(formData.price) || 0;
+    const mrp = Number(formData.mrp) || 0;
+    if (price > mrp && mrp > 0) {
+      setAutoSaveStatus('error');
+      setAutoSaveError('Price cannot exceed MRP');
+      return;
+    }
+
+    const currentSerialized = JSON.stringify(formData);
+    if (currentSerialized === lastSavedPayloadRef.current) {
+      setAutoSaveStatus('saved');
+      return;
+    }
+
+    try {
+      isAutoSavingRef.current = true;
+      setAutoSaveStatus('saving');
+
+      const payload = buildProductPayload('draft');
+
+      if (createdProductIdRef.current) {
+        await adminApi.updateProduct(createdProductIdRef.current, payload);
+      } else {
+        const res = await adminApi.createProduct(payload);
+        const newId = res?.data?.product?._id || res?.data?._id;
+        if (newId) {
+          createdProductIdRef.current = newId;
+          setCreatedProductId(newId);
+          if (typeof window !== "undefined") {
+            window.history.replaceState(null, '', `/products/${newId}`);
+          }
+        }
+      }
+
+      lastSavedPayloadRef.current = currentSerialized;
+      setAutoSaveStatus('saved');
+      setLastSavedTime(new Date());
+      setAutoSaveError(null);
+    } catch (err: any) {
+      console.error("Auto-save draft failed:", err);
+      setAutoSaveStatus('error');
+      setAutoSaveError(getErrorMessage(err));
+    } finally {
+      isAutoSavingRef.current = false;
+    }
+  };
+
+  // Watch formData changes and debounce auto-save after 2.5 seconds of inactivity
+  useEffect(() => {
+    if (isInitialMountRef.current) return;
+
+    const currentSerialized = JSON.stringify(formData);
+    if (currentSerialized === lastSavedPayloadRef.current) {
+      return;
+    }
+
+    if (formData.name?.trim() && formData.name.trim().length >= 2) {
+      setAutoSaveStatus('unsaved');
+    }
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSave();
+    }, 2500);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [formData, uploadingImage, uploadingVideo, loading]);
+
   const handleSubmit = async (e?: React.FormEvent, statusOverride?: string) => {
     if (e) e.preventDefault();
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
 
     const targetStatus = statusOverride || formData.status || 'active';
 
@@ -211,27 +337,13 @@ export default function CreateProduct() {
 
     setLoading(true);
     try {
-      // Process comma-separated strings to arrays
-      const payload: any = {
-        ...formData,
-        status: targetStatus,
-        healthConditions: formData.healthConditions.split(',').map(s => s.trim()).filter(Boolean),
-        tags: formData.tags.split(',').map(s => s.trim()).filter(Boolean),
-        badge: formData.badge === 'none' ? '' : formData.badge,
-        howItWorks: formData.howItWorks,
-        howToUse: formData.howToUse,
-        packOffers: formData.packOffers
-      };
-      
-      // Clean up empty references so backend doesn't fail CastError
-      if (!payload.category) {
-        delete payload.category;
-      }
-      if (!payload.subCategory) {
-        delete payload.subCategory;
-      }
+      const payload = buildProductPayload(targetStatus);
 
-      await adminApi.createProduct(payload);
+      if (createdProductIdRef.current) {
+        await adminApi.updateProduct(createdProductIdRef.current, payload);
+      } else {
+        await adminApi.createProduct(payload);
+      }
       
       if (targetStatus === 'draft') {
         showSuccess("Product saved as draft successfully");
@@ -240,11 +352,47 @@ export default function CreateProduct() {
       }
 
       router.push('/products');
-      router.refresh(); // Refresh the list
+      router.refresh();
     } catch (error: any) {
       showError(getErrorMessage(error));
       setLoading(false);
     }
+  };
+
+  const renderAutoSaveBadge = () => {
+    if (autoSaveStatus === 'saving') {
+      return (
+        <span className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/80 px-3 py-1.5 rounded-lg shadow-xs">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+          <span>Auto-saving draft...</span>
+        </span>
+      );
+    }
+    if (autoSaveStatus === 'saved') {
+      return (
+        <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-lg shadow-xs">
+          <Check className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Draft auto-saved {lastSavedTime ? `at ${lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+        </span>
+      );
+    }
+    if (autoSaveStatus === 'unsaved') {
+      return (
+        <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <span>Unsaved changes</span>
+        </span>
+      );
+    }
+    if (autoSaveStatus === 'error') {
+      return (
+        <span className="flex items-center gap-1.5 text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg" title={autoSaveError || "Auto-save failed"}>
+          <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+          <span>{autoSaveError ? (autoSaveError.length > 30 ? autoSaveError.slice(0, 28) + '...' : autoSaveError) : 'Auto-save failed'}</span>
+        </span>
+      );
+    }
+    return null;
   };
 
   return (
@@ -260,6 +408,7 @@ export default function CreateProduct() {
                <ArrowLeft className="w-4 h-4" /> Back to Products
              </Link>
              <div className="flex items-center gap-3">
+                {renderAutoSaveBadge()}
                 <button 
                   type="button" 
                   onClick={() => router.push('/products')} 
@@ -797,6 +946,7 @@ export default function CreateProduct() {
                <ArrowLeft className="w-4 h-4" /> Cancel & Return
              </Link>
              <div className="flex items-center gap-3">
+                {renderAutoSaveBadge()}
                 <button 
                   type="button" 
                   onClick={() => router.push('/products')} 
