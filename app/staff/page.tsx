@@ -4,7 +4,7 @@
 import { useToast } from "@/lib/toast-context";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { useEffect, useState } from "react";
-import { Shield, Ban, CheckCircle, Trash2, Edit, UserCog, Plus, Check } from "lucide-react";
+import { Shield, Ban, CheckCircle, Trash2, Edit, UserCog, Plus, Check, Eye, EyeOff } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { adminApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -35,6 +35,7 @@ export default function StaffManagement() {
   const [banModal, setBanModal] = useState({ isOpen: false, userId: "", reason: "" });
   const [unbanModal, setUnbanModal] = useState({ isOpen: false, userId: "", userName: "" });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -342,12 +343,22 @@ export default function StaffManagement() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
                     Password {createModal ? "*" : "(Leave blank to keep unchanged)"}
                   </label>
-                  <input
-                    type="text"
-                    value={form.password}
-                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={form.password}
+                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                      className="w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]/20 focus:border-[#8B5CF6] transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -383,6 +394,7 @@ export default function StaffManagement() {
                 onClick={() => {
                   setCreateModal(false);
                   setEditModal({ isOpen: false, staff: null });
+                  setShowPassword(false);
                 }}
                 className="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
               >

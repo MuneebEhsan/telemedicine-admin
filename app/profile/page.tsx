@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Header from "@/components/layout/Header";
-import { User, Camera, Lock, CheckCircle, Smartphone, UserCircle, Loader2 } from "lucide-react";
+import { User, Camera, Lock, CheckCircle, Smartphone, UserCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { adminApi, updateProfile, updatePassword } from "@/lib/api";
 
 export default function Profile() {
@@ -19,6 +19,8 @@ export default function Profile() {
     currentPassword: "",
     newPassword: "",
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -226,25 +228,45 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Current Password <span className="required-star">*</span></label>
-                <input
-                  type="password"
-                  required
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(p => ({ ...p, currentPassword: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm(p => ({ ...p, currentPassword: e.target.value }))}
+                    className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">New Password <span className="required-star">*</span></label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))}
+                    className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

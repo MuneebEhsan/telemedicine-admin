@@ -199,18 +199,39 @@ export default function SelfTestDetailPage() {
               </div>
               
               <div className="space-y-4">
-                <AssessmentField label="Primary Concern" value={data.answers?.concern} icon={AlertTriangle} />
-                <AssessmentField label="Assessment For" value={data.answers?.forWhom} icon={User} />
-                <AssessmentField label="Symptom Duration" value={data.answers?.duration} icon={Clock} />
-                <AssessmentField label="Pain Severity" value={data.answers?.severity} icon={Activity} />
-                <AssessmentField label="Age Range" value={data.answers?.ageRange} icon={Info} />
+                {data.answers?.concern && <AssessmentField label="Primary Concern" value={data.answers?.concern} icon={AlertTriangle} />}
+                {data.answers?.forWhom && <AssessmentField label="Assessment For" value={data.answers?.forWhom} icon={User} />}
+                {data.answers?.duration && <AssessmentField label="Symptom Duration" value={data.answers?.duration} icon={Clock} />}
+                {data.answers?.severity && <AssessmentField label="Pain Severity" value={data.answers?.severity} icon={Activity} />}
+                {data.answers?.ageRange && <AssessmentField label="Age Range" value={data.answers?.ageRange} icon={Info} />}
                 
                 {data.answers?.additionalSymptoms && (
-                  <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Additional Symptoms Reported</p>
                     <p className="text-sm text-slate-600 leading-relaxed font-medium">
                       {data.answers.additionalSymptoms}
                     </p>
+                  </div>
+                )}
+
+                {/* Dynamic / Men's Health Questionnaire Responses */}
+                {Object.entries(data.answers || {})
+                  .filter(([key]) => !['concern', 'forWhom', 'duration', 'severity', 'ageRange', 'additionalSymptoms', 'sessionId'].includes(key))
+                  .length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Detailed Questionnaire Responses</p>
+                    <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                      {Object.entries(data.answers || {})
+                        .filter(([key]) => !['concern', 'forWhom', 'duration', 'severity', 'ageRange', 'additionalSymptoms', 'sessionId'].includes(key))
+                        .map(([question, answer]: [string, any], idx) => (
+                          <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100/80 text-left">
+                            <p className="text-xs font-semibold text-slate-700 mb-1">{question}</p>
+                            <p className="text-xs text-[#14B8A6] font-bold">
+                              {Array.isArray(answer) ? answer.join(', ') : String(answer)}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 )}
               </div>
